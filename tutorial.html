@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网站开发完整教程 - 从零到上线</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d29922;--purple:#bc8cff;--red:#f85149;--cyan:#39d2c0}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}
+code{background:#1c2333;padding:2px 6px;border-radius:4px;font-size:0.9em;color:var(--green);font-family:'SF Mono',Consolas,monospace}
+pre{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:16px;overflow-x:auto;margin:12px 0;font-size:13px;line-height:1.5;color:#c9d1d9;font-family:'SF Mono',Consolas,monospace}
+pre code{background:none;padding:0;color:inherit}
+
+/* 导航 */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(13,17,23,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-size:18px;font-weight:700;color:var(--accent)}
+.nav-links{display:flex;gap:20px;list-style:none}
+.nav-links a{color:var(--text2);font-size:14px;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+
+/* 侧边栏 */
+.sidebar{position:fixed;top:56px;left:0;width:260px;height:calc(100vh - 56px);background:var(--bg);border-right:1px solid var(--border);overflow-y:auto;padding:16px 0;z-index:50}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sidebar-section{padding:0 16px;margin-bottom:8px}
+.sidebar-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text2);margin-bottom:8px;font-weight:600}
+.sidebar a{display:block;padding:6px 12px;font-size:13px;color:var(--text2);border-radius:6px;transition:all .15s;margin-bottom:2px}
+.sidebar a:hover{color:var(--text);background:rgba(88,166,255,0.08)}
+.sidebar a.active{color:var(--accent);background:rgba(88,166,255,0.12);font-weight:500}
+
+/* 主内容 */
+.main{margin-left:260px;padding:72px 48px 80px;max-width:860px}
+.main h1{font-size:36px;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#fff,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.main .subtitle{font-size:16px;color:var(--text2);margin-bottom:40px}
+.main h2{font-size:24px;font-weight:700;margin:48px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border);color:var(--text)}
+.main h3{font-size:18px;font-weight:600;margin:28px 0 12px;color:var(--text)}
+.main p{margin-bottom:14px;color:var(--text2);font-size:15px}
+.main ul,.main ol{margin:8px 0 16px 24px;color:var(--text2);font-size:15px}
+.main li{margin-bottom:6px}
+
+/* 卡片 */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin:20px 0}
+.card-accent{border-left:3px solid var(--accent)}
+.card-green{border-left:3px solid var(--green)}
+.card-orange{border-left:3px solid var(--orange)}
+.card-purple{border-left:3px solid var(--purple)}
+.card h4{font-size:15px;font-weight:600;margin-bottom:8px}
+.card p{font-size:14px;margin-bottom:0}
+
+/* 流程图 */
+.flow{display:flex;align-items:center;gap:0;margin:24px 0;flex-wrap:wrap;justify-content:center}
+.flow-step{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;text-align:center;min-width:120px;max-width:160px}
+.flow-step .num{display:inline-block;width:28px;height:28px;line-height:28px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;margin-bottom:6px}
+.flow-arrow{font-size:20px;color:var(--text2);padding:0 8px}
+
+/* 架构图 */
+.arch-box{border:1px solid var(--border);border-radius:8px;padding:12px 16px;text-align:center;font-size:13px;font-weight:600;margin:4px}
+.arch-box.blue{background:rgba(88,166,255,0.1);border-color:rgba(88,166,255,0.3);color:var(--accent)}
+.arch-box.green{background:rgba(63,185,80,0.1);border-color:rgba(63,185,80,0.3);color:var(--green)}
+.arch-box.orange{background:rgba(210,153,34,0.1);border-color:rgba(210,153,34,0.3);color:var(--orange)}
+.arch-box.purple{background:rgba(188,140,255,0.1);border-color:rgba(188,140,255,0.3);color:var(--purple)}
+.arch-box.red{background:rgba(248,81,73,0.1);border-color:rgba(248,81,73,0.3);color:var(--red)}
+.arch-row{display:flex;gap:8px;justify-content:center;margin:8px 0}
+.arch-arrow{text-align:center;color:var(--text2);font-size:18px;padding:4px 0}
+
+/* 表格 */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:rgba(88,166,255,0.08);padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);color:var(--accent);font-weight:600;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:hover td{background:rgba(255,255,255,0.02)}
+
+/* 标签 */
+.tag{display:inline-block;padding:2px 10px;border-radius:50px;font-size:12px;font-weight:500;margin:2px}
+.tag-blue{background:rgba(88,166,255,0.15);color:var(--accent)}
+.tag-green{background:rgba(63,185,80,0.15);color:var(--green)}
+.tag-orange{background:rgba(210,153,34,0.15);color:var(--orange)}
+.tag-purple{background:rgba(188,140,255,0.15);color:var(--purple)}
+.tag-red{background:rgba(248,81,73,0.15);color:var(--red)}
+.tag-cyan{background:rgba(57,210,192,0.15);color:var(--cyan)}
+
+/* 提示框 */
+.tip{padding:16px 20px;border-radius:8px;margin:16px 0;font-size:14px}
+.tip-info{background:rgba(88,166,255,0.08);border-left:3px solid var(--accent);color:var(--text2)}
+.tip-success{background:rgba(63,185,80,0.08);border-left:3px solid var(--green);color:var(--text2)}
+.tip-warn{background:rgba(210,153,34,0.08);border-left:3px solid var(--orange);color:var(--text2)}
+.tip-danger{background:rgba(248,81,73,0.08);border-left:3px solid var(--red);color:var(--text2)}
+.tip strong{display:block;margin-bottom:4px}
+.tip-info strong{color:var(--accent)}
+.tip-success strong{color:var(--green)}
+.tip-warn strong{color:var(--orange)}
+.tip-danger strong{color:var(--red)}
+
+/* 代码注释颜色 */
+.hl-c{color:#6e7681}.hl-s{color:#a5d6ff}.hl-k{color:#ff7b72}.hl-f{color:#d2a8ff}.hl-n{color:#79c0ff}.hl-v{color:#ffa657}
+
+/* 折叠 */
+.collapsible{cursor:pointer;user-select:none}
+.collapsible::before{content:'▸ ';color:var(--accent)}
+.collapsible.open::before{content:'▾ '}
+.collapse-content{display:none;margin-top:8px}
+.collapse-content.show{display:block}
+
+/* 进度指示 */
+.progress{display:flex;gap:4px;margin:16px 0}
+.progress-bar{flex:1;height:6px;border-radius:3px;background:var(--border)}
+.progress-bar.filled{background:var(--accent)}
+
+/* 响应式 */
+@media(max-width:900px){
+.sidebar{display:none}
+.main{margin-left:0;padding:64px 20px 60px}
+.nav-links{display:none}
+}
+
+/* 平滑滚动 */
+html{scroll-behavior:smooth}
+.section{scroll-margin-top:72px}
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="nav">
+    <div class="nav-logo">🌐 网站开发教程</div>
+    <ul class="nav-links">
+        <li><a href="#overview">总览</a></li>
+        <li><a href="#frontend">前端</a></li>
+        <li><a href="#backend">后端</a></li>
+        <li><a href="#database">数据库</a></li>
+        <li><a href="#server">服务器</a></li>
+        <li><a href="#deploy">部署上线</a></li>
+    </ul>
+</nav>
+
+<!-- 侧边栏 -->
+<aside class="sidebar">
+    <div class="sidebar-section">
+        <div class="sidebar-title">基础概念</div>
+        <a href="#overview" class="active">0. 教程总览</a>
+        <a href="#what-is-website">1. 什么是网站</a>
+        <a href="#how-web-works">2. 网站工作原理</a>
+        <a href="#tech-stack">3. 技术栈选择</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-title">前端开发</div>
+        <a href="#frontend">4. 前端是什么</a>
+        <a href="#html-css-js">5. HTML / CSS / JS</a>
+        <a href="#frontend-example">6. 前端实例</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-title">后端开发</div>
+        <a href="#backend">7. 后端是什么</a>
+        <a href="#api">8. API 接口</a>
+        <a href="#backend-example">9. 后端实例</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-title">数据库</div>
+        <a href="#database">10. 数据库是什么</a>
+        <a href="#sql">11. SQL 基础</a>
+        <a href="#db-example">12. 数据库实例</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-title">服务器与部署</div>
+        <a href="#server">13. 服务器是什么</a>
+        <a href="#domain-ssl">14. 域名与SSL</a>
+        <a href="#nginx">15. Nginx 反向代理</a>
+        <a href="#deploy">16. 部署上线</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-title">实战案例</div>
+        <a href="#full-example">17. 完整项目实战</a>
+        <a href="#payment">18. 支付接入</a>
+        <a href="#summary">19. 学习路线</a>
+    </div>
+</aside>
+
+<!-- 主内容 -->
+<main class="main">
+
+<!-- ==================== 第0章：总览 ==================== -->
+<section class="section" id="overview">
+<h1>🌐 网站开发完整教程</h1>
+<p class="subtitle">从零基础到理解网站开发的每一个环节，用最通俗的语言讲清楚前端、后端、数据库、服务器、域名、部署上线的完整流程。</p>
+
+<div class="flow">
+    <div class="flow-step"><div class="num">1</div>前端页面<br><small style="color:var(--text2)">用户看到的</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">2</div>后端服务<br><small style="color:var(--text2)">处理业务逻辑</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">3</div>数据库<br><small style="color:var(--text2)">存储数据</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">4</div>服务器<br><small style="color:var(--text2)">运行程序</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">5</div>域名+部署<br><small style="color:var(--text2)">上线访问</small></div>
+</div>
+
+<div class="tip tip-info">
+    <strong>💡 本教程适合谁？</strong>
+    已经会做 HTML 页面，但想了解"一个完整的网站是怎么运作的"——包括后端、数据库、服务器这些概念。
+</div>
+</section>
+
+<!-- ==================== 第1章 ==================== -->
+<section class="section" id="what-is-website">
+<h2>1. 什么是网站</h2>
+<p>一个网站本质上就是：<strong>用户通过浏览器访问 → 服务器返回内容</strong>。</p>
+
+<div class="card card-green">
+    <h4>🏠 通俗比喻</h4>
+    <p>把网站想象成一家<strong>餐厅</strong>：</p>
+    <ul style="margin-top:8px">
+        <li><strong>前端</strong> = 餐厅的装修、菜单、桌椅（用户看到的界面）</li>
+        <li><strong>后端</strong> = 厨房 + 厨师（处理订单、做菜的业务逻辑）</li>
+        <li><strong>数据库</strong> = 仓库（存放食材、记录库存）</li>
+        <li><strong>服务器</strong> = 餐厅的物理建筑（一切运行的地方）</li>
+        <li><strong>域名</strong> = 餐厅的地址（如南京路88号）</li>
+    </ul>
+</div>
+
+<h3>静态网站 vs 动态网站</h3>
+<div class="table-wrap">
+<table>
+    <tr><th></th><th>静态网站</th><th>动态网站</th></tr>
+    <tr><td>内容</td><td>固定不变，所有人看到一样</td><td>根据用户不同显示不同内容</td></tr>
+    <tr><td>例子</td><td>个人简历页、产品介绍页</td><td>淘宝、微信、抖音</td></tr>
+    <tr><td>技术</td><td>只需 HTML + CSS</td><td>前端 + 后端 + 数据库</td></tr>
+    <tr><td>复杂度</td><td>⭐</td><td>⭐⭐⭐⭐</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ==================== 第2章 ==================== -->
+<section class="section" id="how-web-works">
+<h2>2. 网站工作原理</h2>
+<p>当你在浏览器输入 <code>www.taobao.com</code> 时，背后发生了什么？</p>
+
+<div class="arch-row">
+    <div class="arch-box blue">👤 你的浏览器<br><small>输入网址</small></div>
+</div>
+<div class="arch-arrow">↓ ① DNS 解析：把域名变成 IP 地址</div>
+<div class="arch-row">
+    <div class="arch-box orange">🌐 DNS 服务器<br><small>taobao.com → 140.205.xx.xx</small></div>
+</div>
+<div class="arch-arrow">↓ ② 发送请求：浏览器向服务器要页面</div>
+<div class="arch-row">
+    <div class="arch-box green">🖥️ 服务器<br><small>接收请求，处理业务</small></div>
+</div>
+<div class="arch-arrow">↓ ③ 查询数据库：获取商品、用户等信息</div>
+<div class="arch-row">
+    <div class="arch-box purple">💾 数据库<br><small>返回数据</small></div>
+</div>
+<div class="arch-arrow">↓ ④ 生成页面：服务器把数据组装成 HTML</div>
+<div class="arch-row">
+    <div class="arch-box green">🖥️ 服务器<br><small>返回 HTML 给浏览器</small></div>
+</div>
+<div class="arch-arrow">↓ ⑤ 浏览器渲染：把 HTML 变成你看到的页面</div>
+<div class="arch-row">
+    <div class="arch-box blue">👤 你的浏览器<br><small>展示页面</small></div>
+</div>
+
+<div class="tip tip-info">
+    <strong>💡 关键概念：HTTP 协议</strong>
+    浏览器和服务器之间用 <strong>HTTP 协议</strong>通信。就像"对话"一样：<br>
+    浏览器说："请给我首页"（HTTP 请求）→ 服务器说："这是首页内容"（HTTP 响应）
+</div>
+</section>
+
+<!-- ==================== 第3章 ==================== -->
+<section class="section" id="tech-stack">
+<h2>3. 技术栈选择</h2>
+<p>做网站需要学哪些技术？下面是最主流的选择：</p>
+
+<div class="table-wrap">
+<table>
+    <tr><th>层次</th><th>推荐技术</th><th>作用</th><th>学习难度</th></tr>
+    <tr>
+        <td><span class="tag tag-blue">前端</span></td>
+        <td>HTML + CSS + JavaScript</td>
+        <td>构建用户界面</td>
+        <td>⭐⭐</td>
+    </tr>
+    <tr>
+        <td><span class="tag tag-green">后端</span></td>
+        <td>Node.js (JavaScript) 或 Python</td>
+        <td>处理业务逻辑</td>
+        <td>⭐⭐⭐</td>
+    </tr>
+    <tr>
+        <td><span class="tag tag-purple">数据库</span></td>
+        <td>MySQL 或 PostgreSQL</td>
+        <td>存储和管理数据</td>
+        <td>⭐⭐⭐</td>
+    </tr>
+    <tr>
+        <td><span class="tag tag-orange">服务器</span></td>
+        <td>Linux + Nginx</td>
+        <td>运行和托管网站</td>
+        <td>⭐⭐⭐</td>
+    </tr>
+    <tr>
+        <td><span class="tag tag-cyan">域名</span></td>
+        <td>域名注册 + SSL证书</td>
+        <td>让用户通过网址访问</td>
+        <td>⭐</td>
+    </tr>
+</table>
+</div>
+
+<div class="tip tip-success">
+    <strong>✅ 好消息</strong>
+    你已经会 HTML 了！这意味着你已经掌握了前端的基础。本教程重点讲解你还不熟悉的后端、数据库和服务器部分。
+</div>
+</section>
+
+<!-- ==================== 第4章：前端 ==================== -->
+<section class="section" id="frontend">
+<h2>4. 前端是什么</h2>
+<p>前端就是<strong>用户在浏览器里看到的一切</strong>：文字、图片、按钮、动画、布局……</p>
+
+<h3>前端三大核心技术</h3>
+<div class="card card-blue">
+    <h4>🏗️ HTML — 网页的"骨架"</h4>
+    <p>定义页面上<strong>有什么内容</strong>（标题、段落、图片、按钮）</p>
+<pre><code><span class="hl-k">&lt;h1&gt;</span>欢迎来到我的网站<span class="hl-k">&lt;/h1&gt;</span>
+<span class="hl-k">&lt;p&gt;</span>这是一段介绍文字<span class="hl-k">&lt;/p&gt;</span>
+<span class="hl-k">&lt;button&gt;</span>点击购买<span class="hl-k">&lt;/button&gt;</span>
+<span class="hl-k">&lt;img</span> <span class="hl-s">src</span>=<span class="hl-v">"photo.jpg"</span><span class="hl-k">&gt;</span></code></pre>
+</div>
+
+<div class="card card-green">
+    <h4>🎨 CSS — 网页的"皮肤"</h4>
+    <p>定义内容<strong>长什么样</strong>（颜色、大小、位置、动画）</p>
+<pre><code><span class="hl-k">h1</span> { <span class="hl-s">color</span>: <span class="hl-n">#0066ff</span>; <span class="hl-s">font-size</span>: <span class="hl-n">32px</span>; }
+<span class="hl-k">button</span> { <span class="hl-s">background</span>: <span class="hl-n">#0066ff</span>; <span class="hl-s">color</span>: <span class="hl-n">white</span>; <span class="hl-s">padding</span>: <span class="hl-n">12px 24px</span>; }</code></pre>
+</div>
+
+<div class="card card-orange">
+    <h4>⚡ JavaScript — 网页的"大脑"</h4>
+    <p>让页面<strong>动起来、能交互</strong>（点击按钮弹窗、提交表单、加载数据）</p>
+<pre><code><span class="hl-c">// 点击按钮时发送请求到后端</span>
+<span class="hl-k">document</span>.<span class="hl-f">querySelector</span>(<span class="hl-v">'button'</span>).<span class="hl-f">addEventListener</span>(<span class="hl-v">'click'</span>, <span class="hl-k">async</span> () => {
+    <span class="hl-k">const</span> res = <span class="hl-k">await</span> <span class="hl-f">fetch</span>(<span class="hl-v">'/api/orders'</span>);
+    <span class="hl-k">const</span> data = <span class="hl-k">await</span> res.<span class="hl-f">json</span>();
+    <span class="hl-c">// 在页面上显示订单数据</span>
+});</code></pre>
+</div>
+</section>
+
+<!-- ==================== 第5章 ==================== -->
+<section class="section" id="html-css-js">
+<h2>5. HTML / CSS / JS 协作方式</h2>
+<p>三者各司其职，配合工作：</p>
+
+<pre><code><span class="hl-c">&lt;!-- 一个完整的前端文件 --&gt;</span>
+<span class="hl-k">&lt;!DOCTYPE html&gt;</span>
+<span class="hl-k">&lt;html&gt;</span>
+<span class="hl-k">&lt;head&gt;</span>
+    <span class="hl-c">&lt;!-- CSS 放在 &lt;style&gt; 标签里 --&gt;</span>
+    <span class="hl-k">&lt;style&gt;</span>
+        .card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        .price { color: #ff6600; font-size: 24px; font-weight: bold; }
+    <span class="hl-k">&lt;/style&gt;</span>
+<span class="hl-k">&lt;/head&gt;</span>
+<span class="hl-k">&lt;body&gt;</span>
+    <span class="hl-c">&lt;!-- HTML 定义结构 --&gt;</span>
+    <span class="hl-k">&lt;div</span> <span class="hl-s">class</span>=<span class="hl-v">"card"</span><span class="hl-k">&gt;</span>
+        <span class="hl-k">&lt;h2&gt;</span>设计课程<span class="hl-k">&lt;/h2&gt;</span>
+        <span class="hl-k">&lt;p</span> <span class="hl-s">class</span>=<span class="hl-v">"price"</span><span class="hl-k">&gt;</span>¥299<span class="hl-k">&lt;/p&gt;</span>
+        <span class="hl-k">&lt;button</span> <span class="hl-s">id</span>=<span class="hl-v">"buyBtn"</span><span class="hl-k">&gt;</span>立即购买<span class="hl-k">&lt;/button&gt;</span>
+    <span class="hl-k">&lt;/div&gt;</span>
+
+    <span class="hl-c">&lt;!-- JS 放在 &lt;script&gt; 标签里 --&gt;</span>
+    <span class="hl-k">&lt;script&gt;</span>
+        document.getElementById('buyBtn').onclick = function() {
+            alert('你点击了购买！');
+        };
+    <span class="hl-k">&lt;/script&gt;</span>
+<span class="hl-k">&lt;/body&gt;</span>
+<span class="hl-k">&lt;/html&gt;</span></code></pre>
+</section>
+
+<!-- ==================== 第6章 ==================== -->
+<section class="section" id="frontend-example">
+<h2>6. 前端实例：向服务器请求数据</h2>
+<p>前端最核心的能力之一就是<strong>与后端通信</strong>。使用 <code>fetch()</code> 发送请求：</p>
+
+<pre><code><span class="hl-c">// GET 请求：从后端获取数据</span>
+<span class="hl-k">const</span> response = <span class="hl-k">await</span> <span class="hl-f">fetch</span>(<span class="hl-v">'/api/courses'</span>);
+<span class="hl-k">const</span> courses = <span class="hl-k">await</span> response.<span class="hl-f">json</span>();
+<span class="hl-c">// courses = [{id:1, name:"UI设计", price:299}, ...]</span>
+
+<span class="hl-c">// POST 请求：向后端发送数据</span>
+<span class="hl-k">await</span> <span class="hl-f">fetch</span>(<span class="hl-v">'/api/orders'</span>, {
+    <span class="hl-s">method</span>: <span class="hl-v">'POST'</span>,
+    <span class="hl-s">headers</span>: { <span class="hl-v">'Content-Type'</span>: <span class="hl-v">'application/json'</span> },
+    <span class="hl-s">body</span>: <span class="hl-n">JSON</span>.<span class="hl-f">stringify</span>({ <span class="hl-s">courseId</span>: <span class="hl-n">1</span>, <span class="hl-s">plan</span>: <span class="hl-v">'pro'</span> })
+});</code></pre>
+
+<div class="tip tip-info">
+    <strong>💡 理解要点</strong>
+    前端只负责"展示"和"交互"，<strong>不直接操作数据库</strong>。所有数据都通过 API 向后端请求。
+</div>
+</section>
+
+<!-- ==================== 第7章：后端 ==================== -->
+<section class="section" id="backend">
+<h2>7. 后端是什么</h2>
+<p>后端是运行在<strong>服务器上</strong>的程序，负责：</p>
+<ul>
+    <li>接收前端发来的请求</li>
+    <li>处理业务逻辑（计算、验证、判断）</li>
+    <li>读写数据库（存取数据）</li>
+    <li>返回结果给前端</li>
+</ul>
+
+<div class="card card-green">
+    <h4>🏠 继续用餐厅比喻</h4>
+    <p>前端是菜单，后端是厨房。客人（用户）看菜单点菜（前端发请求），厨房（后端）做菜（处理逻辑），从仓库（数据库）拿食材，最后端上菜（返回结果）。</p>
+</div>
+
+<h3>后端框架对比</h3>
+<div class="table-wrap">
+<table>
+    <tr><th>语言</th><th>框架</th><th>优点</th><th>适合</th></tr>
+    <tr>
+        <td><span class="tag tag-green">JavaScript</span></td>
+        <td>Express / Koa</td>
+        <td>和前端同语言，学习成本低</td>
+        <td>✅ 推荐你学这个</td>
+    </tr>
+    <tr>
+        <td><span class="tag tag-blue">Python</span></td>
+        <td>Flask / Django</td>
+        <td>语法简洁，生态丰富</td>
+        <td>数据分析、AI 项目</td>
+    </tr>
+    <tr>
+        <td><span class="tag tag-orange">Java</span></td>
+        <td>Spring Boot</td>
+        <td>企业级，稳定可靠</td>
+        <td>大公司、银行</td>
+    </tr>
+    <tr>
+        <td><span class="tag tag-purple">PHP</span></td>
+        <td>Laravel</td>
+        <td>简单易上手</td>
+        <td>WordPress、中小网站</td>
+    </tr>
+</table>
+</div>
+</section>
+
+<!-- ==================== 第8章：API ==================== -->
+<section class="section" id="api">
+<h2>8. API 接口</h2>
+<p><strong>API</strong>（Application Programming Interface，应用程序接口）就是前后端之间的"通信协议"。</p>
+
+<h3>API 的本质</h3>
+<p>API 就是一个<strong>URL 地址 + 约定的请求格式</strong>：</p>
+
+<pre><code><span class="hl-c">// 前端发送请求：</span>
+GET  /api/courses              <span class="hl-c">// 获取所有课程</span>
+GET  /api/courses/1            <span class="hl-c">// 获取ID为1的课程</span>
+POST /api/orders               <span class="hl-c">// 创建订单</span>
+POST /api/alipay/pay           <span class="hl-c">// 发起支付宝支付</span>
+POST /api/alipay/notify        <span class="hl-c">// 支付宝回调通知</span>
+
+<span class="hl-c">// 后端返回 JSON 格式的数据：</span>
+{
+    <span class="hl-s">"id"</span>: <span class="hl-n">1</span>,
+    <span class="hl-s">"name"</span>: <span class="hl-v">"UI设计实战"</span>,
+    <span class="hl-s">"price"</span>: <span class="hl-n">299</span>,
+    <span class="hl-s">"students"</span>: <span class="hl-n">3200</span>
+}</code></pre>
+
+<h3>HTTP 请求方法</h3>
+<div class="table-wrap">
+<table>
+    <tr><th>方法</th><th>作用</th><th>类比</th></tr>
+    <tr><td><code>GET</code></td><td>获取数据</td><td>查看菜单</td></tr>
+    <tr><td><code>POST</code></td><td>创建数据</td><td>下单</td></tr>
+    <tr><td><code>PUT</code></td><td>更新数据</td><td>修改订单</td></tr>
+    <tr><td><code>DELETE</code></td><td>删除数据</td><td>取消订单</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ==================== 第9章：后端实例 ==================== -->
+<section class="section" id="backend-example">
+<h2>9. 后端实例（Node.js）</h2>
+<p>下面是一个最简单的后端服务，只有 30 行代码：</p>
+
+<pre><code><span class="hl-c">// server.js — 最简单的后端服务</span>
+<span class="hl-k">const</span> express = <span class="hl-f">require</span>(<span class="hl-v">'express'</span>);  <span class="hl-c">// 引入框架</span>
+<span class="hl-k">const</span> app = <span class="hl-f">express</span>();             <span class="hl-c">// 创建应用</span>
+
+<span class="hl-c">// 接口1：返回课程列表</span>
+app.<span class="hl-f">get</span>(<span class="hl-v">'/api/courses'</span>, (req, res) => {
+    res.<span class="hl-f">json</span>([
+        { <span class="hl-s">id</span>: <span class="hl-n">1</span>, <span class="hl-s">name</span>: <span class="hl-v">'UI设计实战'</span>, <span class="hl-s">price</span>: <span class="hl-n">299</span> },
+        { <span class="hl-s">id</span>: <span class="hl-n">2</span>, <span class="hl-s">name</span>: <span class="hl-v">'平面设计'</span>,   <span class="hl-s">price</span>: <span class="hl-n">199</span> },
+    ]);
+});
+
+<span class="hl-c">// 接口2：创建订单</span>
+app.<span class="hl-f">post</span>(<span class="hl-v">'/api/orders'</span>, (req, res) => {
+    <span class="hl-k">const</span> { courseId, plan } = req.body;
+    <span class="hl-c">// TODO: 保存到数据库</span>
+    res.<span class="hl-f">json</span>({ <span class="hl-s">success</span>: <span class="hl-k">true</span>, <span class="hl-s">orderId</span>: <span class="hl-v">'ORD20260416001'</span> });
+});
+
+<span class="hl-c">// 启动服务，监听 3000 端口</span>
+app.<span class="hl-f">listen</span>(<span class="hl-n">3000</span>, () => <span class="hl-f">console.log</span>(<span class="hl-v">'服务已启动: http://localhost:3000'</span>));</code></pre>
+
+<div class="tip tip-success">
+    <strong>✅ 运行方式</strong>
+    <code>npm install express</code> → <code>node server.js</code> → 浏览器访问 <code>http://localhost:3000/api/courses</code>
+</div>
+</section>
+
+<!-- ==================== 第10章：数据库 ==================== -->
+<section class="section" id="database">
+<h2>10. 数据库是什么</h2>
+<p>数据库就是一个<strong>有组织的文件柜</strong>，用来高效地存取和管理大量数据。</p>
+
+<div class="card card-purple">
+    <h4>📊 通俗理解</h4>
+    <p>Excel 表格就是一个最简单的"数据库"——有行有列，可以筛选排序。真正的数据库（如 MySQL）做的事情一样，只是更快、更强大、支持多人同时操作。</p>
+</div>
+
+<h3>为什么需要数据库？</h3>
+<ul>
+    <li><strong>持久化</strong>：程序重启后数据不丢失（内存中的数据会丢失）</li>
+    <li><strong>并发安全</strong>：1000人同时下单不会冲突</li>
+    <li><strong>高效查询</strong>：百万条数据中秒级查找</li>
+    <li><strong>关联查询</strong>：用户→订单→商品，表与表之间可以关联</li>
+</ul>
+
+<h3>数据库类型</h3>
+<div class="table-wrap">
+<table>
+    <tr><th>类型</th><th>代表</th><th>特点</th><th>适合场景</th></tr>
+    <tr>
+        <td><span class="tag tag-blue">关系型</span></td>
+        <td>MySQL、PostgreSQL</td>
+        <td>用表格存数据，支持 SQL 查询</td>
+        <td>✅ 大多数网站</td>
+    </tr>
+    <tr>
+        <td><span class="tag tag-green">文档型</span></td>
+        <td>MongoDB</td>
+        <td>用 JSON 格式存数据，灵活</td>
+        <td>内容管理、日志</td>
+    </tr>
+    <tr>
+        <td><span class="tag tag-orange">键值型</span></td>
+        <td>Redis</td>
+        <td>极速读写，常做缓存</td>
+        <td>验证码、排行榜</td>
+    </tr>
+</table>
+</div>
+</section>
+
+<!-- ==================== 第11章：SQL ==================== -->
+<section class="section" id="sql">
+<h2>11. SQL 基础</h2>
+<p>SQL（Structured Query Language）是和数据库"对话"的语言。</p>
+
+<h3>四大核心操作（CRUD）</h3>
+<pre><code><span class="hl-c">-- 1. CREATE（创建）：新建一张表</span>
+<span class="hl-k">CREATE TABLE</span> users (
+    id       <span class="hl-k">INT</span> PRIMARY KEY AUTO_INCREMENT,  <span class="hl-c">-- 用户ID，自动递增</span>
+    name     <span class="hl-k">VARCHAR</span>(50) NOT NULL,              <span class="hl-c">-- 用户名</span>
+    email    <span class="hl-k">VARCHAR</span>(100) UNIQUE,             <span class="hl-c">-- 邮箱（唯一）</span>
+    plan     <span class="hl-k">VARCHAR</span>(20) DEFAULT <span class="hl-v">'free'</span>,  <span class="hl-c">-- 会员方案</span>
+    created  <span class="hl-k">DATETIME</span> DEFAULT <span class="hl-f">NOW</span>()        <span class="hl-c">-- 注册时间</span>
+);
+
+<span class="hl-c">-- 2. INSERT（插入）：添加数据</span>
+<span class="hl-k">INSERT INTO</span> users (name, email, plan) <span class="hl-k">VALUES</span>
+    (<span class="hl-v">'张三'</span>, <span class="hl-v">'zhangsan@qq.com'</span>, <span class="hl-v">'pro'</span>);
+
+<span class="hl-c">-- 3. SELECT（查询）：获取数据</span>
+<span class="hl-k">SELECT</span> * <span class="hl-k">FROM</span> users <span class="hl-k">WHERE</span> plan = <span class="hl-v">'pro'</span>;      <span class="hl-c">-- 查所有专业版用户</span>
+<span class="hl-k">SELECT</span> name, email <span class="hl-k">FROM</span> users <span class="hl-k">ORDER BY</span> created <span class="hl-k">DESC</span>; <span class="hl-c">-- 按注册时间倒序</span>
+
+<span class="hl-c">-- 4. UPDATE（更新）：修改数据</span>
+<span class="hl-k">UPDATE</span> users <span class="hl-k">SET</span> plan = <span class="hl-v">'ultimate'</span> <span class="hl-k">WHERE</span> id = <span class="hl-n">1</span>;
+
+<span class="hl-c">-- 5. DELETE（删除）：删除数据</span>
+<span class="hl-k">DELETE FROM</span> users <span class="hl-k">WHERE</span> id = <span class="hl-n">1</span>;</code></pre>
+
+<div class="tip tip-warn">
+    <strong>⚠️ 重要原则</strong>
+    后端代码中<strong>永远不要拼接 SQL 字符串</strong>（有注入风险），应使用参数化查询。
+</div>
+</section>
+
+<!-- ==================== 第12章：数据库实例 ==================== -->
+<section class="section" id="db-example">
+<h2>12. 后端连接数据库实例</h2>
+<pre><code><span class="hl-k">const</span> mysql = <span class="hl-f">require</span>(<span class="hl-v">'mysql2/promise'</span>);
+
+<span class="hl-c">// 创建数据库连接池</span>
+<span class="hl-k">const</span> pool = mysql.<span class="hl-f">createPool</span>({
+    <span class="hl-s">host</span>: <span class="hl-v">'localhost'</span>,
+    <span class="hl-s">user</span>: <span class="hl-v">'root'</span>,
+    <span class="hl-s">password</span>: <span class="hl-v">'your_password'</span>,
+    <span class="hl-s">database</span>: <span class="hl-v">'asp_cool'</span>
+});
+
+<span class="hl-c">// 在 API 中查询数据库</span>
+app.<span class="hl-f">get</span>(<span class="hl-v">'/api/users'</span>, <span class="hl-k">async</span> (req, res) => {
+    <span class="hl-k">const</span> [rows] = <span class="hl-k">await</span> pool.<span class="hl-f">query</span>(<span class="hl-v">'SELECT * FROM users'</span>);
+    res.<span class="hl-f">json</span>(rows);
+});</code></pre>
+</section>
+
+<!-- ==================== 第13章：服务器 ==================== -->
+<section class="section" id="server">
+<h2>13. 服务器是什么</h2>
+<p>服务器就是一台<strong>24小时不断电的电脑</strong>，运行着你的后端程序和数据库。</p>
+
+<div class="card card-orange">
+    <h4>🖥️ 你自己的电脑 vs 服务器</h4>
+    <div class="table-wrap">
+    <table>
+        <tr><th></th><th>你的电脑</th><th>服务器</th></tr>
+        <tr><td>开机时间</td><td>你用的时候才开</td><td>24×365 永远开着</td></tr>
+        <tr><td>IP地址</td><td>经常变（192.168.x.x）</td><td>固定不变</td></tr>
+        <tr><td>访问</td><td>只有你能访问</td><td>全世界都能访问</td></tr>
+        <tr><td>网络</td><td>家庭WiFi</td><td>数据中心专线</td></tr>
+    </table>
+    </div>
+</div>
+
+<h3>服务器类型</h3>
+<div class="table-wrap">
+<table>
+    <tr><th>类型</th><th>代表</th><th>价格</th><th>适合</th></tr>
+    <tr><td>云服务器 ECS</td><td>阿里云、腾讯云、华为云</td><td>¥50-300/月</td><td>✅ 推荐新手</td></tr>
+    <tr><td>轻量应用服务器</td><td>阿里云轻量、腾讯云 Lighthouse</td><td>¥30-100/月</td><td>个人项目</td></tr>
+    <tr><td>Serverless</td><td>阿里云函数计算、Vercel</td><td>按量付费</td><td>简单API</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ==================== 第14章 ==================== -->
+<section class="section" id="domain-ssl">
+<h2>14. 域名与 SSL</h2>
+
+<h3>域名</h3>
+<p>域名就是网站的"网址"，比如 <code>apply.asp.cool</code>。</p>
+<ul>
+    <li><strong>注册</strong>：在阿里云/腾讯云/GoDaddy 等平台购买（¥30-100/年）</li>
+    <li><strong>解析</strong>：把域名指向服务器的 IP 地址（DNS 记录）</li>
+    <li><strong>备案</strong>：国内服务器需要 ICP 备案（约 1-2 周）</li>
+</ul>
+
+<h3>SSL 证书（HTTPS）</h3>
+<p>让网址从 <code>http://</code> 变成 <code>https://</code>（小锁图标），数据传输加密。</p>
+<ul>
+    <li><strong>免费</strong>：Let's Encrypt（推荐）、阿里云免费证书</li>
+    <li><strong>付费</strong>：各大云厂商 SSL 证书</li>
+    <li><strong>支付回调必须用 HTTPS</strong></li>
+</ul>
+</section>
+
+<!-- ==================== 第15章 ==================== -->
+<section class="section" id="nginx">
+<h2>15. Nginx 反向代理</h2>
+<p><strong>Nginx</strong>是一个"交通指挥员"，负责：</p>
+
+<div class="arch-row">
+    <div class="arch-box blue">👤 用户浏览器<br><small>访问 apply.asp.cool</small></div>
+</div>
+<div class="arch-arrow">↓</div>
+<div class="arch-row">
+    <div class="arch-box orange">🚦 Nginx (端口80/443)<br><small>接收请求，转发给后端</small></div>
+</div>
+<div class="arch-arrow">↓ 转发到 localhost:3000</div>
+<div class="arch-row">
+    <div class="arch-box green">🖥️ Node.js 后端 (端口3000)<br><small>处理业务逻辑</small></div>
+</div>
+
+<pre><code><span class="hl-c"># nginx.conf — Nginx 配置文件</span>
+<span class="hl-k">server</span> {
+    <span class="hl-s">listen</span>       <span class="hl-n">443</span> ssl;
+    <span class="hl-s">server_name</span>  apply.asp.cool;
+
+    <span class="hl-c"># SSL 证书</span>
+    <span class="hl-s">ssl_certificate</span>     /etc/ssl/asp.cool.pem;
+    <span class="hl-s">ssl_certificate_key</span> /etc/ssl/asp.cool.key;
+
+    <span class="hl-c"># 反向代理：把请求转发给 Node.js</span>
+    <span class="hl-k">location</span> / {
+        <span class="hl-s">proxy_pass</span> http://localhost:3000;
+        <span class="hl-s">proxy_set_header</span> Host $host;
+    }
+}</code></pre>
+</section>
+
+<!-- ==================== 第16章 ==================== -->
+<section class="section" id="deploy">
+<h2>16. 部署上线完整流程</h2>
+
+<div class="flow">
+    <div class="flow-step"><div class="num">1</div>买服务器<br><small>阿里云 ECS</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">2</div>装环境<br><small>Node.js + MySQL</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">3</div>传代码<br><small>Git 或 FTP</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">4</div>配 Nginx<br><small>反向代理</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">5</div>绑域名<br><small>DNS 解析</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">6</div>上 SSL<br><small>HTTPS 证书</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">7</div>✅ 上线！<br><small>全世界可访问</small></div>
+</div>
+
+<h3>详细步骤</h3>
+
+<div class="card card-accent">
+    <h4>步骤 1：购买云服务器</h4>
+    <p>推荐阿里云/腾讯云，选择 Ubuntu 系统，2核4G 足够入门项目。</p>
+</div>
+
+<div class="card card-accent">
+    <h4>步骤 2：安装运行环境</h4>
+<pre><code><span class="hl-c"># SSH 登录服务器后执行：</span>
+sudo apt update
+sudo apt install nodejs npm mysql-server nginx -y
+sudo npm install -g pm2    <span class="hl-c"># 进程管理工具</span></code></pre>
+</div>
+
+<div class="card card-accent">
+    <h4>步骤 3：上传代码</h4>
+<pre><code><span class="hl-c"># 方法1：用 Git（推荐）</span>
+git clone https://github.com/yourname/asp-cool.git
+
+<span class="hl-c"># 方法2：用 SCP 直接传文件</span>
+scp -r ./server root@your-server-ip:/home/app/</code></pre>
+</div>
+
+<div class="card card-accent">
+    <h4>步骤 4：启动后端</h4>
+<pre><code>cd /home/app/server
+npm install
+pm2 start server.js --name "asp-cool"
+pm2 save               <span class="hl-c"># 开机自启</span></code></pre>
+</div>
+
+<div class="card card-accent">
+    <h4>步骤 5：配置 Nginx</h4>
+<pre><code>sudo vim /etc/nginx/sites-available/asp.cool
+<span class="hl-c"># 写入上面的 Nginx 配置</span>
+sudo ln -s /etc/nginx/sites-available/asp.cool /etc/nginx/sites-enabled/
+sudo nginx -t          <span class="hl-c"># 检查配置</span>
+sudo systemctl restart nginx</code></pre>
+</div>
+
+<div class="card card-accent">
+    <h4>步骤 6：域名解析</h4>
+    <p>在域名服务商后台添加 A 记录：<code>apply.asp.cool → 你的服务器IP</code></p>
+</div>
+</section>
+
+<!-- ==================== 第17章 ==================== -->
+<section class="section" id="full-example">
+<h2>17. 完整项目结构</h2>
+<p>一个完整的网站项目，文件结构通常是这样的：</p>
+
+<pre><code>asp-cool/
+├── index.html              <span class="hl-c"># 前端页面（用户看到的）</span>
+├── css/
+│   └── style.css           <span class="hl-c"># 样式文件</span>
+├── js/
+│   └── app.js              <span class="hl-c"># 前端交互逻辑</span>
+├── server/                  <span class="hl-c"># 后端代码（服务器运行的）</span>
+│   ├── server.js           <span class="hl-c"># 主程序</span>
+│   ├── package.json        <span class="hl-c"># 依赖配置</span>
+│   ├── routes/             <span class="hl-c"># 路由（API 接口定义）</span>
+│   │   ├── courses.js       <span class="hl-c"># 课程相关接口</span>
+│   │   ├── orders.js        <span class="hl-c"># 订单相关接口</span>
+│   │   └── payment.js       <span class="hl-c"># 支付相关接口</span>
+│   ├── models/             <span class="hl-c"># 数据模型（数据库操作）</span>
+│   │   ├── User.js
+│   │   └── Order.js
+│   ├── config/
+│   │   └── db.js            <span class="hl-c"># 数据库连接配置</span>
+│   ├── private-key.pem      <span class="hl-c"># 支付宝私钥（绝不泄露！）</span>
+│   └── alipay-public-key.pem <span class="hl-c"># 支付宝公钥</span>
+├── nginx.conf              <span class="hl-c"># Nginx 配置</span>
+└── README.md</code></pre>
+</section>
+
+<!-- ==================== 第18章：支付 ==================== -->
+<section class="section" id="payment">
+<h2>18. 支付接入流程</h2>
+<p>以支付宝电脑网站支付为例，完整流程：</p>
+
+<div class="flow">
+    <div class="flow-step"><div class="num">1</div>注册商户<br><small>支付宝开放平台</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">2</div>创建应用<br><small>获取 AppID</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">3</div>生成密钥<br><small>RSA2 密钥对</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">4</div>后端集成<br><small>SDK 下单</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">5</div>前端跳转<br><small>支付宝收银台</small></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="num">6</div>异步通知<br><small>确认支付</small></div>
+</div>
+
+<div class="tip tip-info">
+    <strong>💡 核心要点</strong>
+    <ul>
+        <li><strong>签名必须在后端完成</strong>，私钥绝对不能放前端</li>
+        <li><strong>支付结果以异步通知为准</strong>，前端跳转结果不可信</li>
+        <li><strong>回调地址必须 HTTPS</strong>，且外网可访问</li>
+    </ul>
+</div>
+</section>
+
+<!-- ==================== 第19章：学习路线 ==================== -->
+<section class="section" id="summary">
+<h2>19. 推荐学习路线</h2>
+
+<div class="progress">
+    <div class="progress-bar filled"></div>
+    <div class="progress-bar filled"></div>
+    <div class="progress-bar filled"></div>
+    <div class="progress-bar filled"></div>
+    <div class="progress-bar"></div>
+    <div class="progress-bar"></div>
+    <div class="progress-bar"></div>
+</div>
+<p style="color:var(--text2);font-size:13px;margin-bottom:20px">你已经在这里了 ↑</p>
+
+<div class="table-wrap">
+<table>
+    <tr><th>阶段</th><th>学习内容</th><th>预计时间</th><th>资源</th></tr>
+    <tr>
+        <td>✅ 已完成</td>
+        <td>HTML + CSS 基础</td>
+        <td>2-4 周</td>
+        <td>MDN Web Docs</td>
+    </tr>
+    <tr>
+        <td>⬇️ 下一步</td>
+        <td>JavaScript 进阶</td>
+        <td>2-3 周</td>
+        <td>现代 JavaScript 教程</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>Node.js + Express 后端</td>
+        <td>2-3 周</td>
+        <td>Express 官方文档</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>MySQL 数据库基础</td>
+        <td>1-2 周</td>
+        <td>MySQL 必知必会</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>Linux + Nginx 部署</td>
+        <td>1-2 周</td>
+        <td>阿里云文档</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>实战项目</td>
+        <td>2-4 周</td>
+        <td>仿写一个完整网站</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>支付/登录等高级功能</td>
+        <td>按需学习</td>
+        <td>各平台开放文档</td>
+    </tr>
+</table>
+</div>
+
+<div class="tip tip-success">
+    <strong>🎯 学习建议</strong>
+    <ul>
+        <li><strong>不要只看不做</strong>：每学一个知识点，立刻动手写代码</li>
+        <li><strong>从项目中学</strong>：比看教程更有效的是"做一个真实项目"</li>
+        <li><strong>善用 AI</strong>：遇到不懂的代码，让 AI 帮你解释</li>
+        <li><strong>先跑通再优化</strong>：不要追求完美，先让功能跑起来</li>
+    </ul>
+</div>
+
+<div class="card card-purple" style="margin-top:32px">
+    <h4>📚 推荐学习资源</h4>
+    <ul>
+        <li><strong>MDN Web Docs</strong> — 前端知识最权威的参考：<a href="https://developer.mozilla.org" target="_blank">developer.mozilla.org</a></li>
+        <li><strong>Node.js 官方文档</strong> — 后端入门：<a href="https://nodejs.org/zh-cn/docs" target="_blank">nodejs.org</a></li>
+        <li><strong>MySQL 教程</strong> — 数据库入门：菜鸟教程 MySQL</li>
+        <li><strong>支付宝开放平台</strong> — 支付接入文档：<a href="https://open.alipay.com" target="_blank">open.alipay.com</a></li>
+        <li><strong>B站免费课程</strong> — 搜索"全栈开发入门"</li>
+    </ul>
+</div>
+
+</section>
+
+</main>
+
+<script>
+// 侧边栏高亮
+const sections = document.querySelectorAll('.section');
+const sidebarLinks = document.querySelectorAll('.sidebar a');
+
+window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    sidebarLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+});
+
+// 折叠功能
+document.querySelectorAll('.collapsible').forEach(el => {
+    el.addEventListener('click', () => {
+        el.classList.toggle('open');
+        el.nextElementSibling.classList.toggle('show');
+    });
+});
+</script>
+
+</body>
+</html>
