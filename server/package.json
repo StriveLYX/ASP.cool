@@ -1,0 +1,14 @@
+{
+  "name": "asp-cool-server",
+  "version": "1.0.0",
+  "description": "ASP.Cool 支付后端服务 - 支付宝电脑网站支付",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "sandbox": "node server.js --sandbox"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "alipay-sdk": "^4.2.0"
+  }
+}
