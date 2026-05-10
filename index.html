@@ -843,8 +843,8 @@
 // 配置区域
 // ==========================================
 const CONFIG = {
-    // 后端 API 地址（上线时改为 https://apply.asp.cool/api）
-    apiBase: 'http://localhost:3000/api',
+    // 后端 API 地址（必须与页面协议一致，HTTPS 页面只能请求 HTTPS 接口）
+    apiBase: 'https://apply.asp.cool/api',
 
     // 会员方案定价（单位：元）
     plans: {
@@ -893,7 +893,7 @@ function openPayment(plan) {
     document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
     document.getElementById('btnConfirmPay').disabled = true;
     document.getElementById('paymentMethodSelect').style.display = 'block';
-    document.getElementById('paymentProcessing').style.display = 'block';
+    document.getElementById('paymentProcessing').style.display = 'none';
     document.getElementById('paymentProcessing').classList.remove('active');
     document.getElementById('payResultSuccess').style.display = 'none';
     document.getElementById('payResultCancel').style.display = 'none';
