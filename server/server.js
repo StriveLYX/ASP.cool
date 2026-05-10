@@ -29,11 +29,22 @@ app.use(express.urlencoded({ extended: true }));
 // ==========================================
 const isSandbox = process.argv.includes('--sandbox');
 
+// ==========================================
+// 密钥文件路径（沙箱和正式环境分离）
+// ==========================================
+const KEY_DIR = __dirname;
+const privateKeyFile = isSandbox
+    ? path.join(KEY_DIR, 'sandbox-private-key.pem')
+    : path.join(KEY_DIR, 'private-key.pem');
+const alipayPublicKeyFile = isSandbox
+    ? path.join(KEY_DIR, 'sandbox-alipay-public-key.pem')
+    : path.join(KEY_DIR, 'alipay-public-key.pem');
+
 const ALIPAY_CONFIG = {
     // 应用 AppID（从支付宝开放平台获取）
     appId: isSandbox
-        ? '9021000162681567'        // 沙箱 AppID
-        : '2021006145667930',      // 正式环境 AppID
+        ? '9021000163651842'        // 沙箱 AppID
+        : '2021006151671810',      // 正式环境 AppID
 
     // 支付宝网关地址
     gateway: isSandbox
@@ -41,16 +52,10 @@ const ALIPAY_CONFIG = {
         : 'https://openapi.alipay.com/gateway.do',
 
     // 应用私钥（仅保存在服务端，绝对不能泄露）
-    privateKey: fs.readFileSync(
-        path.join(__dirname, 'private-key.pem'),
-        'utf-8'
-    ).toString(),
+    privateKey: fs.readFileSync(privateKeyFile, 'utf-8').toString(),
 
     // 支付宝公钥（用于验签）
-    alipayPublicKey: fs.readFileSync(
-        path.join(__dirname, 'alipay-public-key.pem'),
-        'utf-8'
-    ).toString(),
+    alipayPublicKey: fs.readFileSync(alipayPublicKeyFile, 'utf-8').toString(),
 
     // 签名算法（推荐 RSA2）
     signType: 'RSA2',
@@ -58,20 +63,20 @@ const ALIPAY_CONFIG = {
     // 异步通知地址（支付宝支付完成后通知此地址）
     // 注意：必须外网可访问的 HTTPS 地址
     notifyUrl: isSandbox
-        ? 'https://your-domain.com/api/alipay/notify'
+        ? 'http://localhost:3000/api/alipay/notify'
         : 'https://apply.asp.cool/api/alipay/notify',
 
     // 支付完成后的跳转地址（用户支付完成后浏览器跳转回来）
     returnUrl: isSandbox
-        ? 'http://localhost:8080/index.html?payResult=success'
+        ? 'http://localhost:3000/index.html?payResult=success'
         : 'https://apply.asp.cool/index.html?payResult=success',
 };
 
 // 会员方案定价（单位：元）
 const PLANS = {
-    basic:    { name: '基础版', monthly: 99,  yearly: 713  },
-    pro:      { name: '专业版', monthly: 299, yearly: 2153 },
-    ultimate: { name: '旗舰版', monthly: 599, yearly: 4313 }
+    basic:    { name: '基础版', monthly: 1,  yearly: 1  },
+    pro:      { name: '专业版', monthly: 1, yearly: 1 },
+    ultimate: { name: '旗舰版', monthly: 1, yearly: 1 }
 };
 
 // 初始化支付宝 SDK

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNS 入门教程 - 通俗易懂学域名解析</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0e1a;
+            color: #e0e6f0;
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        /* ========== 导航栏 ========== */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(10, 14, 26, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 180, 255, 0.15);
+            padding: 0 30px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #00b4ff, #0066ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: #8899aa; text-decoration: none; font-size: 14px; transition: color 0.3s; }
+        .nav-links a:hover { color: #00b4ff; }
+
+        /* ========== 侧边栏 ========== */
+        .sidebar {
+            position: fixed; top: 64px; left: 0; width: 280px; height: calc(100vh - 64px);
+            background: rgba(10, 14, 26, 0.98);
+            border-right: 1px solid rgba(0, 180, 255, 0.1);
+            overflow-y: auto; padding: 20px 0; z-index: 100;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #1a2a3a; border-radius: 2px; }
+        .sidebar-section { margin-bottom: 16px; }
+        .sidebar-title { font-size: 11px; color: #556677; text-transform: uppercase; letter-spacing: 2px; padding: 8px 24px; }
+        .sidebar-link {
+            display: block; padding: 8px 24px; color: #8899aa; text-decoration: none;
+            font-size: 14px; transition: all 0.2s; border-left: 3px solid transparent;
+        }
+        .sidebar-link:hover, .sidebar-link.active { color: #00b4ff; background: rgba(0, 180, 255, 0.05); border-left-color: #00b4ff; }
+
+        /* ========== 主内容 ========== */
+        .main { margin-left: 280px; padding: 84px 48px 60px; max-width: 900px; }
+
+        /* ========== 标题 ========== */
+        .hero { text-align: center; padding: 40px 0 50px; }
+        .hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
+        .hero h1 span { background: linear-gradient(135deg, #00b4ff, #0066ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { color: #8899aa; font-size: 16px; max-width: 600px; margin: 0 auto; }
+
+        /* ========== 章节 ========== */
+        .chapter { margin-bottom: 48px; }
+        .chapter-tag { display: inline-block; font-size: 12px; color: #00b4ff; background: rgba(0, 180, 255, 0.1); padding: 3px 10px; border-radius: 12px; margin-bottom: 8px; }
+        h2 { font-size: 24px; font-weight: 700; margin-bottom: 16px; color: #fff; }
+        h3 { font-size: 18px; font-weight: 600; margin: 24px 0 12px; color: #c0d0e0; }
+        h4 { font-size: 15px; font-weight: 600; margin: 20px 0 8px; color: #a0b0c0; }
+        p { margin-bottom: 14px; color: #b0c0d0; }
+
+        /* ========== 比喻框 ========== */
+        .analogy-box {
+            background: linear-gradient(135deg, rgba(0, 180, 255, 0.08), rgba(0, 102, 255, 0.05));
+            border: 1px solid rgba(0, 180, 255, 0.2);
+            border-radius: 12px; padding: 24px; margin: 20px 0;
+        }
+        .analogy-box .title { font-size: 16px; font-weight: 700; color: #00b4ff; margin-bottom: 12px; }
+        .analogy-box p { color: #b0c0d0; margin-bottom: 8px; }
+
+        /* ========== 提示框 ========== */
+        .tip-box {
+            background: rgba(255, 193, 7, 0.08);
+            border: 1px solid rgba(255, 193, 7, 0.25);
+            border-radius: 10px; padding: 18px 22px; margin: 20px 0;
+        }
+        .tip-box .title { color: #ffc107; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+        .tip-box p { color: #c0b080; font-size: 14px; margin-bottom: 4px; }
+
+        .info-box {
+            background: rgba(0, 180, 255, 0.06);
+            border: 1px solid rgba(0, 180, 255, 0.15);
+            border-radius: 10px; padding: 18px 22px; margin: 20px 0;
+        }
+        .info-box .title { color: #00b4ff; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+        .info-box p { color: #80b0d0; font-size: 14px; margin-bottom: 4px; }
+
+        .success-box {
+            background: rgba(40, 167, 69, 0.08);
+            border: 1px solid rgba(40, 167, 69, 0.25);
+            border-radius: 10px; padding: 18px 22px; margin: 20px 0;
+        }
+        .success-box .title { color: #28a745; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+        .success-box p { color: #80c090; font-size: 14px; margin-bottom: 4px; }
+
+        .warn-box {
+            background: rgba(220, 53, 69, 0.08);
+            border: 1px solid rgba(220, 53, 69, 0.25);
+            border-radius: 10px; padding: 18px 22px; margin: 20px 0;
+        }
+        .warn-box .title { color: #dc3545; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+        .warn-box p { color: #c08080; font-size: 14px; margin-bottom: 4px; }
+
+        /* ========== 代码块 ========== */
+        pre {
+            background: #111827; border: 1px solid #1e2d3d; border-radius: 10px;
+            padding: 18px 22px; margin: 16px 0; overflow-x: auto;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 13px; line-height: 1.7; color: #e0e6f0;
+        }
+        code { font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; }
+        .inline-code { background: rgba(0, 180, 255, 0.1); color: #00b4ff; padding: 2px 8px; border-radius: 4px; font-size: 13px; }
+
+        /* ========== 表格 ========== */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; border-radius: 10px; overflow: hidden; }
+        th { background: rgba(0, 180, 255, 0.1); color: #00b4ff; font-weight: 600; text-align: left; padding: 14px 18px; font-size: 14px; border-bottom: 2px solid rgba(0, 180, 255, 0.2); }
+        td { padding: 12px 18px; border-bottom: 1px solid #1a2a3a; font-size: 14px; color: #b0c0d0; }
+        tr:hover td { background: rgba(0, 180, 255, 0.03); }
+
+        /* ========== 流程图 ========== */
+        .flow { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
+        .flow-item {
+            background: rgba(0, 180, 255, 0.08); border: 1px solid rgba(0, 180, 255, 0.2);
+            border-radius: 10px; padding: 14px 20px; text-align: center; min-width: 140px;
+        }
+        .flow-item .label { font-size: 12px; color: #556677; margin-bottom: 4px; }
+        .flow-item .value { font-size: 15px; font-weight: 600; color: #e0e6f0; }
+        .flow-arrow { color: #00b4ff; font-size: 24px; }
+
+        /* ========== 对比卡片 ========== */
+        .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        .compare-card {
+            background: rgba(255,255,255,0.02); border: 1px solid #1e2d3d;
+            border-radius: 12px; padding: 20px;
+        }
+        .compare-card h4 { color: #00b4ff; margin-top: 0; }
+        .compare-card ul { padding-left: 20px; }
+        .compare-card li { color: #b0c0d0; font-size: 14px; margin-bottom: 6px; }
+
+        /* ========== 步骤 ========== */
+        .steps { counter-reset: step; }
+        .step {
+            position: relative; padding-left: 56px; margin-bottom: 24px;
+        }
+        .step::before {
+            counter-increment: step; content: counter(step);
+            position: absolute; left: 0; top: 0;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #00b4ff, #0066ff);
+            color: #fff; font-weight: 700; font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .step-title { font-size: 16px; font-weight: 600; color: #e0e6f0; margin-bottom: 6px; }
+        .step-content { color: #8899aa; font-size: 14px; }
+
+        /* ========== 域名结构图 ========== */
+        .domain-visual {
+            display: flex; align-items: center; justify-content: center;
+            gap: 0; margin: 24px 0; flex-wrap: wrap;
+        }
+        .domain-part {
+            padding: 12px 20px; text-align: center; border-radius: 8px;
+        }
+        .domain-part.sub { background: rgba(0, 180, 255, 0.15); border: 1px solid rgba(0, 180, 255, 0.3); }
+        .domain-part.domain { background: rgba(0, 102, 255, 0.15); border: 1px solid rgba(0, 102, 255, 0.3); }
+        .domain-part.tld { background: rgba(100, 50, 255, 0.15); border: 1px solid rgba(100, 50, 255, 0.3); }
+        .domain-part .name { font-size: 20px; font-weight: 700; color: #fff; }
+        .domain-part .desc { font-size: 11px; color: #8899aa; margin-top: 2px; }
+        .domain-dot { font-size: 28px; color: #556677; font-weight: 700; padding: 0 4px; }
+
+        /* ========== 实战框 ========== */
+        .practice-box {
+            background: linear-gradient(135deg, #111827, #0d1520);
+            border: 2px solid rgba(0, 180, 255, 0.3);
+            border-radius: 14px; padding: 28px; margin: 24px 0;
+        }
+        .practice-box .badge { display: inline-block; background: #00b4ff; color: #000; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 10px; margin-bottom: 12px; }
+
+        /* ========== 分隔线 ========== */
+        .divider { border: none; border-top: 1px solid #1a2a3a; margin: 40px 0; }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 80px 20px 40px; }
+            .compare-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="navbar">
+    <div class="logo">DNS 教程</div>
+    <div class="nav-links">
+        <a href="#ch1">什么是DNS</a>
+        <a href="#ch3">记录类型</a>
+        <a href="#ch5">实战操作</a>
+    </div>
+</nav>
+
+<!-- 侧边栏 -->
+<aside class="sidebar">
+    <div class="sidebar-section">
+        <div class="sidebar-title">基础概念</div>
+        <a href="#ch1" class="sidebar-link">1. 什么是 DNS</a>
+        <a href="#ch2" class="sidebar-link">2. 域名的结构</a>
+        <a href="#ch3" class="sidebar-link">3. 记录类型详解</a>
+        <a href="#ch4" class="sidebar-link">4. 主机记录是什么</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-title">深入理解</div>
+        <a href="#ch5" class="sidebar-link">5. A 记录 vs CNAME</a>
+        <a href="#ch6" class="sidebar-link">6. TTL 是什么</a>
+        <a href="#ch7" class="sidebar-link">7. DNS 解析流程</a>
+    </div>
+    <div class="sidebar-section">
+        <div class="sidebar-title">实战操作</div>
+        <a href="#ch8" class="sidebar-link">8. 你的项目怎么配</a>
+        <a href="#ch9" class="sidebar-link">9. 常见问题</a>
+        <a href="#ch10" class="sidebar-link">10. 速查表</a>
+    </div>
+</aside>
+
+<!-- 主内容 -->
+<div class="main">
+
+    <!-- 封面 -->
+    <div class="hero">
+        <h1>🌐 <span>DNS 域名解析</span>入门教程</h1>
+        <p>用最通俗的语言，从零开始理解域名解析。看完这篇，你就能独立配置 DNS 了。</p>
+    </div>
+
+    <!-- 第1章 -->
+    <div class="chapter" id="ch1">
+        <span class="chapter-tag">第 1 章</span>
+        <h2>什么是 DNS</h2>
+
+        <div class="analogy-box">
+            <div class="title">🏠 通俗比喻：DNS 就是互联网的「电话簿」</div>
+            <p>想象一下，你要给朋友打电话。你知道朋友的名字叫「张三」，但电话不认识名字，你需要查电话簿找到他的号码 <span class="inline-code">138xxxx1234</span>，然后才能拨通。</p>
+            <p>DNS 做的事情完全一样：</p>
+            <p>你输入 <span class="inline-code">apply.asp.cool</span> → DNS 查询 → 找到 IP 地址 <span class="inline-code">76.76.21.21</span> → 浏览器连接到这个 IP</p>
+        </div>
+
+        <h3>为什么需要 DNS？</h3>
+        <p>因为电脑之间通信用的是 <strong>IP 地址</strong>（比如 <span class="inline-code">76.76.21.21</span>），但人类记不住这些数字。所以我们用好记的<strong>域名</strong>（比如 <span class="inline-code">apply.asp.cool</span>），让 DNS 帮我们翻译。</p>
+
+        <div class="flow">
+            <div class="flow-item">
+                <div class="label">你输入</div>
+                <div class="value">apply.asp.cool</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">
+                <div class="label">DNS 查询</div>
+                <div class="value">域名 → IP</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">
+                <div class="label">返回</div>
+                <div class="value">76.76.21.21</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-item">
+                <div class="label">浏览器访问</div>
+                <div class="value">Vercel 服务器</div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="title">💡 一句话总结</div>
+            <p><strong>DNS = Domain Name System（域名系统）</strong>，它的作用就是把「人类能看懂的域名」翻译成「电脑能看懂的 IP 地址」。</p>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 第2章 -->
+    <div class="chapter" id="ch2">
+        <span class="chapter-tag">第 2 章</span>
+        <h2>域名的结构</h2>
+
+        <p>一个完整的域名由几个部分组成，从右往左读：</p>
+
+        <div class="domain-visual">
+            <div class="domain-part sub">
+                <div class="name">apply</div>
+                <div class="desc">子域名 (Subdomain)</div>
+            </div>
+            <div class="domain-dot">.</div>
+            <div class="domain-part domain">
+                <div class="name">asp</div>
+                <div class="desc">主域名 (Domain)</div>
+            </div>
+            <div class="domain-dot">.</div>
+            <div class="domain-part tld">
+                <div class="name">cool</div>
+                <div class="desc">顶级域名 (TLD)</div>
+            </div>
+        </div>
+
+        <h3>每一层是什么意思？</h3>
+        <table>
+            <tr><th>部分</th><th>名称</th><th>例子</th><th>说明</th></tr>
+            <tr><td><span class="inline-code">apply</span></td><td>子域名</td><td>apply、www、api、mail</td><td>你可以自由创建，用来区分不同的服务</td></tr>
+            <tr><td><span class="inline-code">asp</span></td><td>主域名</td><td>asp、baidu、taobao</td><td>你花钱买的那个名字，全球唯一</td></tr>
+            <tr><td><span class="inline-code">.cool</span></td><td>顶级域名</td><td>.com、.cn、.cool、.org</td><td>域名后缀，由国际机构管理</td></tr>
+        </table>
+
+        <div class="analogy-box">
+            <div class="title">🏠 再用餐厅比喻</div>
+            <p>假设你的餐厅叫「ASP」：</p>
+            <p><span class="inline-code">.cool</span> = 餐厅所在的「美食街」（美食街里有很多餐厅）</p>
+            <p><span class="inline-code">asp</span> = 你的「餐厅名字」（美食街里只有一家叫 ASP）</p>
+            <p><span class="inline-code">apply</span> = 餐厅里的「包间名」（可以有 apply 包间、www 包间、api 包间）</p>
+        </div>
+
+        <h3>你可以创建哪些子域名？</h3>
+        <p>子域名可以<strong>随便起名</strong>，常见的有：</p>
+        <table>
+            <tr><th>子域名</th><th>完整域名</th><th>通常用途</th></tr>
+            <tr><td><span class="inline-code">www</span></td><td>www.asp.cool</td><td>主站（最常见）</td></tr>
+            <tr><td><span class="inline-code">apply</span></td><td>apply.asp.cool</td><td>报名/申请页面（你的项目）</td></tr>
+            <tr><td><span class="inline-code">api</span></td><td>api.asp.cool</td><td>后端 API 接口</td></tr>
+            <tr><td><span class="inline-code">mail</span></td><td>mail.asp.cool</td><td>企业邮箱</td></tr>
+            <tr><td><span class="inline-code">blog</span></td><td>blog.asp.cool</td><td>博客</td></tr>
+            <tr><td><span class="inline-code">@</span></td><td>asp.cool</td><td>根域名（不带子域名）</td></tr>
+        </table>
+
+        <div class="tip-box">
+            <div class="title">⚡ 关键概念：@ 代表什么？</div>
+            <p>在 DNS 配置中，<span class="inline-code">@</span> 代表「根域名」本身，也就是 <span class="inline-code">asp.cool</span>（不带任何前缀）。</p>
+            <p>比如你直接访问 <span class="inline-code">asp.cool</span>，DNS 就会查找 <span class="inline-code">@</span> 对应的记录。</p>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 第3章 -->
+    <div class="chapter" id="ch3">
+        <span class="chapter-tag">第 3 章</span>
+        <h2>记录类型详解</h2>
+
+        <p>DNS 记录类型决定了「这条记录用来做什么」。最常用的有 4 种：</p>
+
+        <!-- A 记录 -->
+        <h3>📝 A 记录（Address）</h3>
+        <div class="analogy-box">
+            <div class="title">🏠 比喻：直接写上门牌号</div>
+            <p>「apply 这个包间在 216 号楼」—— 直接告诉客人具体的 IP 地址。</p>
+        </div>
+        <table>
+            <tr><th>属性</th><th>说明</th></tr>
+            <tr><td>作用</td><td>把域名指向一个 <strong>IPv4 地址</strong>（如 76.76.21.21）</td></tr>
+            <tr><td>格式</td><td>域名 → IP 地址（数字）</td></tr>
+            <tr><td>适用场景</td><td>你知道服务器的具体 IP 地址时使用</td></tr>
+            <tr><td>限制</td><td>IP 地址如果变了，你需要手动去改</td></tr>
+        </table>
+        <p><strong>例子：</strong>把 <span class="inline-code">asp.cool</span> 指向 IP <span class="inline-code">216.198.79.1</span></p>
+        <pre>主机记录: @
+记录类型: A
+记录值:   216.198.79.1</pre>
+
+        <!-- CNAME 记录 -->
+        <h3>🔗 CNAME 记录（Canonical Name）</h3>
+        <div class="analogy-box">
+            <div class="title">🏠 比喻：告诉客人「去问前台」</div>
+            <p>「apply 这个包间？你先去问 Vercel 前台，前台会告诉你具体位置」—— 不直接给地址，而是让 DNS 去问另一个域名。</p>
+        </div>
+        <table>
+            <tr><th>属性</th><th>说明</th></tr>
+            <tr><td>作用</td><td>把域名指向 <strong>另一个域名</strong>（不是 IP）</td></tr>
+            <tr><td>格式</td><td>域名 → 另一个域名</td></tr>
+            <tr><td>适用场景</td><td>使用第三方服务（Vercel、Cloudflare 等）时</td></tr>
+            <tr><td>优势</td><td>对方 IP 变了不用你管，自动跟着变</td></tr>
+        </table>
+        <p><strong>例子：</strong>把 <span class="inline-code">apply.asp.cool</span> 指向 Vercel 的域名</p>
+        <pre>主机记录: apply
+记录类型: CNAME
+记录值:   cname.vercel-dns.com</pre>
+
+        <!-- TXT 记录 -->
+        <h3>📋 TXT 记录（Text）</h3>
+        <div class="analogy-box">
+            <div class="title">🏠 比喻：在门口贴一张告示</div>
+            <p>「这是 Vercel 的地盘，验证码是 xxx」—— 不影响访问，只是用来证明身份或传递信息。</p>
+        </div>
+        <table>
+            <tr><th>属性</th><th>说明</th></tr>
+            <tr><td>作用</td><td>给域名附加 <strong>文本信息</strong></td></tr>
+            <tr><td>格式</td><td>域名 → 一段文字</td></tr>
+            <tr><td>适用场景</td><td>域名验证、SPF 邮件防伪、SSL 证书验证</td></tr>
+            <tr><td>特点</td><td>不影响网站访问，纯信息用途</td></tr>
+        </table>
+        <p><strong>例子：</strong>Vercel 要求你添加 TXT 记录来验证域名所有权</p>
+        <pre>主机记录: _vercel
+记录类型: TXT
+记录值:   vc-domain-verify=asp.cool,6f52fc7e3c7a2e5bc05e</pre>
+
+        <!-- MX 记录 -->
+        <h3>📧 MX 记录（Mail Exchange）</h3>
+        <div class="analogy-box">
+            <div class="title">🏠 比喻：指定收发室</div>
+            <p>「所有寄给 asp.cool 的信件，请送到腾讯企业邮的收发室」—— 专门用来配置邮件服务。</p>
+        </div>
+        <table>
+            <tr><th>属性</th><th>说明</th></tr>
+            <tr><td>作用</td><td>指定接收邮件的服务器</td></tr>
+            <tr><td>格式</td><td>域名 → 邮件服务器地址</td></tr>
+            <tr><td>适用场景</td><td>配置企业邮箱（如腾讯企业邮、阿里企业邮）</td></tr>
+        </table>
+
+        <div class="info-box">
+            <div class="title">💡 你目前只需要关心 3 种</div>
+            <p>对于你的项目，只需要用到：<strong>A 记录</strong>（根域名）、<strong>CNAME 记录</strong>（子域名指向 Vercel）、<strong>TXT 记录</strong>（验证域名）。MX 记录以后配邮箱时再说。</p>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 第4章 -->
+    <div class="chapter" id="ch4">
+        <span class="chapter-tag">第 4 章</span>
+        <h2>主机记录是什么</h2>
+
+        <p>主机记录就是子域名的「前缀部分」，它决定了这条 DNS 记录对<strong>哪个域名</strong>生效。</p>
+
+        <h3>常见的主机记录值</h3>
+        <table>
+            <tr><th>主机记录</th><th>对应的完整域名</th><th>说明</th></tr>
+            <tr><td><span class="inline-code">@</span></td><td>asp.cool</td><td>根域名本身（直接访问 asp.cool）</td></tr>
+            <tr><td><span class="inline-code">www</span></td><td>www.asp.cool</td><td>最常见的子域名，用于主站</td></tr>
+            <tr><td><span class="inline-code">apply</span></td><td>apply.asp.cool</td><td>你的报名页面</td></tr>
+            <tr><td><span class="inline-code">api</span></td><td>api.asp.cool</td><td>后端 API 接口</td></tr>
+            <tr><td><span class="inline-code">*</span></td><td>所有子域名</td><td>通配符，匹配所有未单独配置的子域名</td></tr>
+            <tr><td><span class="inline-code">_vercel</span></td><td>_vercel.asp.cool</td><td>以下划线开头的特殊记录，用于验证</td></tr>
+        </table>
+
+        <div class="analogy-box">
+            <div class="title">🏠 比喻：餐厅的包间号</div>
+            <p>主机记录就是「包间号」：</p>
+            <p><span class="inline-code">@</span> = 大厅（直接进门就是）</p>
+            <p><span class="inline-code">www</span> = 1号包间</p>
+            <p><span class="inline-code">apply</span> = 2号包间</p>
+            <p><span class="inline-code">api</span> = 3号包间</p>
+            <p><span class="inline-code">*</span> = 「其他包间都走这个默认规则」</p>
+        </div>
+
+        <div class="tip-box">
+            <div class="title">⚡ 为什么 _vercel 以下划线开头？</div>
+            <p>以下划线 <span class="inline-code">_</span> 开头的主机记录是 DNS 的特殊约定，表示这条记录<strong>不会被用来访问网站</strong>，而是用于「验证」或「配置」目的。浏览器不会访问 <span class="inline-code">_vercel.asp.cool</span>，只有 Vercel 的服务器会去查询它。</p>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 第5章 -->
+    <div class="chapter" id="ch5">
+        <span class="chapter-tag">第 5 章</span>
+        <h2>A 记录 vs CNAME：什么时候用哪个？</h2>
+
+        <div class="compare-grid">
+            <div class="compare-card">
+                <h4>A 记录</h4>
+                <ul>
+                    <li>直接指向 IP 地址</li>
+                    <li>适合：自己有服务器，知道 IP</li>
+                    <li>缺点：IP 变了要手动改</li>
+                    <li>根域名（@）只能用 A 记录</li>
+                </ul>
+            </div>
+            <div class="compare-card">
+                <h4>CNAME 记录</h4>
+                <ul>
+                    <li>指向另一个域名</li>
+                    <li>适合：用第三方服务（Vercel 等）</li>
+                    <li>优点：对方 IP 变了不用你管</li>
+                    <li>子域名推荐用 CNAME</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>简单判断规则</h3>
+        <div class="info-box">
+            <div class="title">🎯 判断口诀</div>
+            <p>✅ 用 <strong>CNAME</strong>：部署在 Vercel / Cloudflare / GitHub Pages 等第三方平台</p>
+            <p>✅ 用 <strong>A 记录</strong>：部署在自己的服务器上，有固定 IP</p>
+            <p>✅ 根域名 <span class="inline-code">@</span>：用 A 记录（部分 DNS 服务商支持 ALIAS）</p>
+        </div>
+
+        <h3>为什么你的 apply 要用 CNAME？</h3>
+        <p>因为你的前端部署在 <strong>Vercel</strong> 上。Vercel 给你的不是一个固定 IP，而是一个域名 <span class="inline-code">cname.vercel-dns.com</span>。Vercel 可能有很多台服务器，会根据你的位置自动分配最快的那个。</p>
+        <p>如果用 A 记录指向某个 IP，万一 Vercel 换了 IP，你的网站就挂了。用 CNAME 就不会有这个问题。</p>
+
+        <div class="warn-box">
+            <div class="title">⚠️ 注意：根域名的限制</div>
+            <p>按照 DNS 标准，<span class="inline-code">@</span>（根域名）<strong>不能</strong>使用 CNAME 记录。所以 <span class="inline-code">asp.cool</span>（根域名）只能用 A 记录指向 IP，而 <span class="inline-code">apply.asp.cool</span>（子域名）可以用 CNAME。</p>
+            <p>不过阿里云等部分 DNS 服务商支持「隐性 CNAME」或「ALIAS 记录」来绕过这个限制。</p>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 第6章 -->
+    <div class="chapter" id="ch6">
+        <span class="chapter-tag">第 6 章</span>
+        <h2>TTL 是什么</h2>
+
+        <div class="analogy-box">
+            <div class="title">🏠 比喻：电话簿的「更新频率」</div>
+            <p>TTL = Time To Live（生存时间）。意思是：DNS 记录的答案会被「记住」多久。</p>
+            <p>如果 TTL = 10分钟，那么 DNS 服务器查到你的域名对应什么 IP 后，会把这个答案缓存 10 分钟。10 分钟内再有人的查询，直接返回缓存，不再去查。</p>
+        </div>
+
+        <table>
+            <tr><th>TTL 值</th><th>含义</th><th>适用场景</th></tr>
+            <tr><td>10 分钟（600秒）</td><td>改动后 10 分钟生效</td><td>正在调试、经常改 DNS</td></tr>
+            <tr><td>1 小时（3600秒）</td><td>改动后 1 小时生效</td><td>一般网站</td></tr>
+            <tr><td>1 天（86400秒）</td><td>改动后最多 1 天生效</td><td>稳定运行的大型网站</td></tr>
+        </table>
+
+        <div class="tip-box">
+            <div class="title">⚡ 建议</div>
+            <p>你正在配置 DNS，建议先把 TTL 设为 <strong>10 分钟</strong>，这样改错了也能快速修正。等一切稳定后，再改回 1 小时或更长。</p>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 第7章 -->
+    <div class="chapter" id="ch7">
+        <span class="chapter-tag">第 7 章</span>
+        <h2>DNS 解析完整流程</h2>
+
+        <p>当你在浏览器输入 <span class="inline-code">apply.asp.cool</span> 并回车后，背后发生了什么？</p>
+
+        <div class="steps">
+            <div class="step">
+                <div class="step-title">浏览器检查缓存</div>
+                <div class="step-content">先看看自己之前有没有查过这个域名，如果有缓存就直接用。</div>
+            </div>
+            <div class="step">
+                <div class="step-title">查询本地 DNS 服务器</div>
+                <div class="step-content">问你的运营商（电信/联通/移动）的 DNS 服务器：「apply.asp.cool 的 IP 是多少？」</div>
+            </div>
+            <div class="step">
+                <div class="step-title">查询根域名服务器</div>
+                <div class="step-content">本地 DNS 不知道，就去问全球根服务器：「.cool 这个后缀归谁管？」→ 得到 .cool 顶级域服务器的地址。</div>
+            </div>
+            <div class="step">
+                <div class="step-title">查询顶级域服务器</div>
+                <div class="step-content">问 .cool 服务器：「asp.cool 归谁管？」→ 得到 asp.cool 的权威 DNS 服务器地址（阿里云）。</div>
+            </div>
+            <div class="step">
+                <div class="step-title">查询权威 DNS 服务器</div>
+                <div class="step-content">问阿里云 DNS：「apply.asp.cool 的记录是什么？」→ 返回 CNAME 到 cname.vercel-dns.com。</div>
+            </div>
+            <div class="step">
+                <div class="step-title">继续解析 CNAME</div>
+                <div class="step-content">再查 cname.vercel-dns.com 的 A 记录 → 得到最终 IP 地址（比如 76.76.21.21）。</div>
+            </div>
+            <div class="step">
+                <div class="step-title">浏览器连接服务器</div>
+                <div class="step-content">用拿到的 IP 地址，和 Vercel 服务器建立连接，加载你的网页。</div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="title">💡 为什么 DNS 修改后要等？</div>
+            <p>因为上面的每一步都有<strong>缓存</strong>。你改了阿里云的 DNS 记录，但运营商的 DNS 服务器可能还记得旧的答案（在 TTL 过期之前）。所以 DNS 修改后通常需要 <strong>几分钟到几小时</strong>才能全球生效。</p>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 第8章 -->
+    <div class="chapter" id="ch8">
+        <span class="chapter-tag">第 8 章</span>
+        <h2>你的项目怎么配（实战）</h2>
+
+        <p>现在回到你的 ASP.Cool 项目，来解释为什么每条记录要这么写：</p>
+
+        <div class="practice-box">
+            <div class="badge">实战配置</div>
+            <h3>你的完整 DNS 配置表</h3>
+
+            <table>
+                <tr><th>主机记录</th><th>类型</th><th>记录值</th><th>为什么这么写？</th></tr>
+                <tr>
+                    <td><span class="inline-code">_vercel</span></td>
+                    <td>TXT</td>
+                    <td>vc-domain-verify=asp.cool,6f52fc7e3c7a2e5bc05e</td>
+                    <td>Vercel 要求的验证码，证明你是域名主人。验证完可以删。</td>
+                </tr>
+                <tr>
+                    <td><span class="inline-code">apply</span></td>
+                    <td>CNAME</td>
+                    <td>cname.vercel-dns.com</td>
+                    <td>你的前端部署在 Vercel，所以用 CNAME 指向 Vercel。访问 apply.asp.cool 就会打开你的网站。</td>
+                </tr>
+                <tr>
+                    <td><span class="inline-code">www</span></td>
+                    <td>CNAME</td>
+                    <td>79e70e2862e49dd1.vercel-dns-017.com</td>
+                    <td>www 子域名也指向 Vercel（之前配置的）。访问 www.asp.cool 也能打开网站。</td>
+                </tr>
+                <tr>
+                    <td><span class="inline-code">@</span></td>
+                    <td>A</td>
+                    <td>216.198.79.1</td>
+                    <td>根域名 asp.cool 指向一个 IP。这是之前的配置，暂时保留。</td>
+                </tr>
+            </table>
+        </div>
+
+        <h3>逐条解释</h3>
+
+        <h4>1️⃣ TXT 记录：_vercel</h4>
+        <p><strong>目的：</strong>Vercel 发现 asp.cool 之前绑在别人的账号上，所以需要你证明「这个域名是我的」。</p>
+        <p><strong>原理：</strong>Vercel 让你在 DNS 里贴一张「告示」（TXT 记录），内容是它给的验证码。然后 Vercel 去查你的 DNS，看到告示上的验证码和自己生成的一样，就确认你是域名主人了。</p>
+        <p><strong>验证后：</strong>这条记录可以删掉，不影响网站运行。</p>
+
+        <h4>2️⃣ CNAME 记录：apply</h4>
+        <p><strong>目的：</strong>让 <span class="inline-code">apply.asp.cool</span> 指向你的 Vercel 网站。</p>
+        <p><strong>为什么用 CNAME 不用 A：</strong>Vercel 有很多台服务器，IP 会变。用 CNAME 指向 <span class="inline-code">cname.vercel-dns.com</span>，Vercel 会自动帮你分配最快的服务器。</p>
+
+        <h4>3️⃣ CNAME 记录：www</h4>
+        <p><strong>目的：</strong>让 <span class="inline-code">www.asp.cool</span> 也能打开你的网站。这条是之前就配好的，Vercel 自动生成了一个项目专属的域名。</p>
+
+        <h4>4️⃣ A 记录：@</h4>
+        <p><strong>目的：</strong>让 <span class="inline-code">asp.cool</span>（不带 www）也能访问。目前指向一个 IP 地址。</p>
+
+        <div class="success-box">
+            <div class="title">✅ 配置完成后的效果</div>
+            <p>访问 <span class="inline-code">apply.asp.cool</span> → DNS 查到 CNAME → 跳到 Vercel → 显示你的网站 ✨</p>
+            <p>访问 <span class="inline-code">www.asp.cool</span> → 同样跳到 Vercel → 显示你的网站 ✨</p>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 第9章 -->
+    <div class="chapter" id="ch9">
+        <span class="chapter-tag">第 9 章</span>
+        <h2>常见问题</h2>
+
+        <h3>❓ DNS 修改后多久生效？</h3>
+        <p>通常 <strong>10 分钟 ~ 48 小时</strong>。全球 DNS 服务器需要时间同步。你的 TTL 设为 10 分钟的话，大部分情况下 10-30 分钟就能生效。</p>
+
+        <h3>❓ 怎么检查 DNS 是否生效？</h3>
+        <p>在终端（命令行）输入：</p>
+        <pre># Windows
+nslookup apply.asp.cool
+
+# Mac / Linux
+dig apply.asp.cool</pre>
+        <p>如果返回了 Vercel 的 IP 地址，说明已经生效了。</p>
+        <p>也可以用在线工具：<span class="inline-code">https://tool.chinaz.com/dns/</span>（站长之家 DNS 查询）</p>
+
+        <h3>❓ Vercel 提示 "Invalid Configuration" 怎么办？</h3>
+        <p>通常是因为 DNS 记录还没生效。等几分钟再试。如果超过 1 小时还不行，检查记录值是否拼写正确。</p>
+
+        <h3>❓ 可以同时有 A 记录和 CNAME 吗？</h3>
+        <p><strong>同一个主机记录不能同时有 A 和 CNAME</strong>。但不同的主机记录可以分别用不同类型。比如 <span class="inline-code">@</span> 用 A 记录，<span class="inline-code">apply</span> 用 CNAME，这是完全没问题的。</p>
+
+        <h3>❓ CNAME 记录值要带末尾的点吗？</h3>
+        <p>在阿里云后台填写时<strong>不需要</strong>加末尾的点。系统会自动处理。</p>
+
+        <h3>❓ 误删了记录怎么办？</h3>
+        <p>DNS 记录可以随时重新添加，不会造成永久损坏。重新添加正确的记录，等 DNS 生效即可。</p>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 第10章 -->
+    <div class="chapter" id="ch10">
+        <span class="chapter-tag">第 10 章</span>
+        <h2>速查表</h2>
+
+        <h3>DNS 记录类型速查</h3>
+        <table>
+            <tr><th>类型</th><th>全称</th><th>记录值填什么</th><th>用途</th></tr>
+            <tr><td><strong>A</strong></td><td>Address</td><td>IP 地址（如 76.76.21.21）</td><td>域名 → IP</td></tr>
+            <tr><td><strong>CNAME</strong></td><td>Canonical Name</td><td>另一个域名</td><td>域名 → 域名</td></tr>
+            <tr><td><strong>TXT</strong></td><td>Text</td><td>一段文字</td><td>验证/信息</td></tr>
+            <tr><td><strong>MX</strong></td><td>Mail Exchange</td><td>邮件服务器地址</td><td>配置邮箱</td></tr>
+            <tr><td><strong>AAAA</strong></td><td>IPv6 Address</td><td>IPv6 地址</td><td>域名 → IPv6</td></tr>
+        </table>
+
+        <h3>主机记录速查</h3>
+        <table>
+            <tr><th>填什么</th><th>代表什么</th><th>完整域名</th></tr>
+            <tr><td><span class="inline-code">@</span></td><td>根域名</td><td>asp.cool</td></tr>
+            <tr><td><span class="inline-code">www</span></td><td>www 子域名</td><td>www.asp.cool</td></tr>
+            <tr><td><span class="inline-code">apply</span></td><td>apply 子域名</td><td>apply.asp.cool</td></tr>
+            <tr><td><span class="inline-code">*</span></td><td>所有子域名</td><td>xxx.asp.cool（任意）</td></tr>
+        </table>
+
+        <h3>你的项目配置速查</h3>
+        <table>
+            <tr><th>我要实现</th><th>主机记录</th><th>类型</th><th>记录值</th></tr>
+            <tr><td>验证域名所有权</td><td>_vercel</td><td>TXT</td><td>vc-domain-verify=asp.cool,6f52fc7e3c7a2e5bc05e</td></tr>
+            <tr><td>前端页面上线</td><td>apply</td><td>CNAME</td><td>cname.vercel-dns.com</td></tr>
+            <tr><td>后端 API 上线</td><td>api</td><td>CNAME</td><td>你的服务器域名或 IP</td></tr>
+            <tr><td>www 也能访问</td><td>www</td><td>CNAME</td><td>cname.vercel-dns.com</td></tr>
+        </table>
+
+        <div class="info-box">
+            <div class="title">📚 继续学习</div>
+            <p>想了解更多网站开发知识？查看你的 <span class="inline-code">tutorial.html</span> 网站开发完整教程。</p>
+            <p>想了解后端部署？查看 <span class="inline-code">ASP.Cool后端部署指南.docx</span>。</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 侧边栏高亮
+    const links = document.querySelectorAll('.sidebar-link');
+    const chapters = document.querySelectorAll('.chapter');
+
+    function updateActiveLink() {
+        let current = '';
+        chapters.forEach(ch => {
+            const top = ch.getBoundingClientRect().top;
+            if (top < 150) current = ch.id;
+        });
+        links.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + current) {
+                link.classList.add('active');
+            }
+        });
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+    updateActiveLink();
+</script>
+
+</body>
+</html>
