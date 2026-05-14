@@ -64,7 +64,7 @@ const ALIPAY_CONFIG = {
     // 注意：必须外网可访问的 HTTPS 地址
     notifyUrl: isSandbox
         ? 'http://localhost:3000/api/alipay/notify'
-        : 'https://apply.asp.cool/api/alipay/notify',
+        : 'https://api.asp.cool/api/alipay/notify',
 
     // 支付完成后的跳转地址（用户支付完成后浏览器跳转回来）
     returnUrl: isSandbox
