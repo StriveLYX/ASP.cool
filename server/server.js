@@ -65,7 +65,7 @@ const ALIPAY_CONFIG = {
     // 应用 AppID（从支付宝开放平台获取）
     appId: isSandbox
         ? '9021000163651842'        // 沙箱 AppID
-        : '2021006151671810',      // 正式环境 AppID
+        : '2021006152636876',      // 正式环境 AppID
 
     // 支付宝网关地址
     gateway: isSandbox
