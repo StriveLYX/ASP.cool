@@ -9,7 +9,7 @@
 ## 在线访问
 
 - **前端页面**: [apply.asp.cool](https://apply.asp.cool)（部署在 Vercel）
-- **后端 API**: [api.apply.asp.cool](https://api.apply.asp.cool)（部署在云服务器）
+- **后端 API**: [api.asp.cool](https://api.asp.cool)（部署在云服务器）
 
 ## 项目结构
 

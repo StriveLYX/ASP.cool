@@ -21,6 +21,27 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
+
+const ALLOWED_ORIGINS = new Set([
+    'https://apply.asp.cool',
+    'http://localhost:3000',
+    'http://localhost:5173',
+]);
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && ALLOWED_ORIGINS.has(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Vary', 'Origin');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+    next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -99,6 +120,14 @@ try {
 
 // 内存存储订单（生产环境请使用数据库）
 const orders = new Map();
+
+app.get('/api/health', (req, res) => {
+    res.json({
+        ok: true,
+        service: 'asp-cool-payment-api',
+        environment: isSandbox ? 'sandbox' : 'production',
+    });
+});
 
 // ==========================================
 // 接口 1: 创建支付宝支付订单

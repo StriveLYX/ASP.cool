@@ -171,7 +171,7 @@
             msgDiv.innerHTML = '';
 
             try {
-                const response = await fetch(`${CONFIG.apiBase}/alipay/pay`, {
+                const response = await fetch(`${CONFIG.apiBase}/api/alipay/pay`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -186,9 +186,17 @@
 
                 const data = await response.json();
 
-                if (data.success && data.paymentUrl) {
+                if (data.formHtml) {
                     msgDiv.innerHTML = '<div class="success">订单创建成功，正在跳转到支付宝...</div>';
-                    window.location.href = data.paymentUrl;
+                    const container = document.createElement('div');
+                    container.style.display = 'none';
+                    container.innerHTML = data.formHtml;
+                    document.body.appendChild(container);
+                    const form = container.querySelector('form');
+                    if (!form) {
+                        throw new Error('支付宝支付表单生成失败');
+                    }
+                    form.submit();
                 } else {
                     throw new Error(data.error || '创建订单失败');
                 }
