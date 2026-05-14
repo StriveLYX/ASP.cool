@@ -69,7 +69,7 @@ const ALIPAY_CONFIG = {
     // 支付完成后的跳转地址（用户支付完成后浏览器跳转回来）
     returnUrl: isSandbox
         ? 'http://localhost:3000/index.html?payResult=success'
-        : 'https://apply.asp.cool/index.html?payResult=success',
+        : 'https://apply.asp.cool',
 };
 
 // 会员方案定价（单位：元）
