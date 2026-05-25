@@ -1328,9 +1328,25 @@
                 const data = await response.json();
 
                 if (data.formHtml) {
-                    // 跳转到支付等待页面，带上订单信息
-                    const waitingUrl = `/payment-waiting.html?order_id=${orderId}&tier=${state.selectedTier}&amount=${state.selectedAmount}`;
-                    window.location.href = waitingUrl;
+                    // 1. 把表单HTML存到 sessionStorage，供倒计时页面使用
+                    sessionStorage.setItem('alipay_formHtml', data.formHtml);
+                    sessionStorage.setItem('alipay_orderId', orderId);
+                    sessionStorage.setItem('alipay_tier', state.selectedTier);
+                    sessionStorage.setItem('alipay_amount', state.selectedAmount);
+                    
+                    // 2. 在当前页面直接提交支付宝表单（用户点击触发，不会被拦截）
+                    const container = document.createElement('div');
+                    container.innerHTML = data.formHtml;
+                    document.body.appendChild(container);
+                    const form = container.querySelector('form');
+                    if (form) {
+                        form.submit();
+                    } else {
+                        throw new Error('支付宝支付表单生成失败');
+                    }
+                    
+                    // 3. 同时跳转到倒计时页面（在新标签页打开）
+                    window.open('/payment-waiting.html', '_blank');
                 } else {
                     throw new Error(data.error || '创建订单失败');
                 }

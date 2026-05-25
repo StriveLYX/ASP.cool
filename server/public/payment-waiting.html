@@ -543,60 +543,28 @@
             document.getElementById('failedState').style.display = 'block';
         }
 
-        // 提交支付宝支付
-        async function submitAlipayPayment() {
-            const { orderId: oid, tier, amount } = getUrlParams();
+        // 初始化
+        function init() {
+            // 从 sessionStorage 读取订单信息
+            const storedOrderId = sessionStorage.getItem('alipay_orderId');
+            const storedTier = sessionStorage.getItem('alipay_tier');
+            const storedAmount = sessionStorage.getItem('alipay_amount');
             
-            if (!oid) {
+            if (!storedOrderId) {
                 alert('缺少订单信息');
                 window.location.href = '/';
                 return;
             }
             
-            orderId = oid;
+            orderId = storedOrderId;
             
             // 显示订单信息
             document.getElementById('orderId').textContent = orderId;
             document.getElementById('tierName').textContent = 
-                tier === 'early_bird' ? '早鸟价' :
-                tier === 'second_batch' ? '第二批' :
-                tier === 'third_batch' ? '第三批' : '原价';
-            document.getElementById('amount').textContent = '¥' + parseInt(amount).toLocaleString();
-            
-            try {
-                // 创建支付宝订单
-                const response = await fetch(`${CONFIG.apiBase}/api/alipay/pay`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        orderId: orderId,
-                        plan: tier,
-                        billing: 'full',
-                        amount: parseInt(amount)
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.formHtml) {
-                    // 在新窗口打开支付宝支付
-                    const container = document.createElement('div');
-                    container.innerHTML = data.formHtml;
-                    document.body.appendChild(container);
-                    
-                    const form = container.querySelector('form');
-                    if (form) {
-                        // 设置 target="_blank" 在新窗口打开
-                        form.setAttribute('target', '_blank');
-                        form.submit();
-                    }
-                } else {
-                    throw new Error(data.error || '创建支付宝订单失败');
-                }
-            } catch (error) {
-                console.error('创建支付订单失败:', error);
-                alert('创建支付订单失败: ' + error.message);
-            }
+                storedTier === 'early_bird' ? '早鸟价' :
+                storedTier === 'second_batch' ? '第二批' :
+                storedTier === 'third_batch' ? '第三批' : '原价';
+            document.getElementById('amount').textContent = '¥' + parseInt(storedAmount).toLocaleString();
             
             // 启动倒计时
             updateCountdown();
@@ -605,11 +573,6 @@
             // 启动状态检查
             checkPaymentStatus();
             checkTimer = setInterval(checkPaymentStatus, CONFIG.checkInterval);
-        }
-
-        // 初始化
-        function init() {
-            submitAlipayPayment();
         }
 
         // 取消支付
