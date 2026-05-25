@@ -476,17 +476,18 @@ app.post('/api/alipay/notify', async (req, res) => {
         console.log('支付通知:', { orderId, tradeStatus, tradeNo });
         
         if (tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'TRADE_FINISHED') {
-            // 更新本地支付状态
+            // 通过 out_trade_no 查找并更新支付记录
             const result = await query(
                 `UPDATE qcore_payments 
                  SET status = 'paid', transaction_id = $1, paid_at = NOW(), updated_at = NOW()
-                 WHERE id = (SELECT id FROM qcore_payments WHERE transaction_id IS NULL LIMIT 1)
-                 RETURNING application_id, user_id, tier`,
-                [tradeNo]
+                 WHERE out_trade_no = $2 AND status = 'pending'
+                 RETURNING id, application_id, user_id, tier, amount`,
+                [tradeNo, orderId]
             );
             
             if (result.rows.length > 0) {
                 const payment = result.rows[0];
+                console.log('✅ 支付记录已更新, payment_id:', payment.id, ', amount:', payment.amount);
                 
                 // 回调 camp2026 更新状态
                 try {
@@ -504,6 +505,8 @@ app.post('/api/alipay/notify', async (req, res) => {
                 } catch (callbackErr) {
                     console.error('回调 camp2026 失败:', callbackErr.message);
                 }
+            } else {
+                console.log('⚠️ 未找到对应的待支付记录, out_trade_no:', orderId);
             }
         }
         
@@ -552,6 +555,101 @@ app.get('/api/payments/result', async (req, res) => {
         
     } catch (err) {
         console.error('查询支付结果失败:', err.message);
+        res.status(500).json({ success: false, error: '查询失败' });
+    }
+});
+
+// ==========================================
+// API 7: 通过商户订单号查询支付状态（前端轮询用）
+// GET /api/payments/query?order_id=xxx
+// ==========================================
+app.get('/api/payments/query', async (req, res) => {
+    const { order_id } = req.query;
+    
+    if (!order_id) {
+        return res.status(400).json({ success: false, error: '缺少 order_id' });
+    }
+    
+    try {
+        // 先查数据库
+        const result = await query(
+            'SELECT * FROM qcore_payments WHERE out_trade_no = $1',
+            [order_id]
+        );
+        
+        if (result.rows.length > 0) {
+            const payment = result.rows[0];
+            return res.json({
+                success: true,
+                data: {
+                    paymentId: payment.id,
+                    status: payment.status,
+                    tier: payment.tier,
+                    amount: parseFloat(payment.amount),
+                    paidAt: payment.paid_at,
+                    transactionId: payment.transaction_id,
+                }
+            });
+        }
+        
+        // 数据库没找到，尝试通过支付宝 SDK 主动查询
+        try {
+            const alipayResult = await alipaySdk.exec('alipay.trade.query', {
+                bizContent: {
+                    out_trade_no: order_id,
+                },
+            });
+            
+            if (alipayResult.code === '10000') {
+                const tradeStatus = alipayResult.tradeStatus;
+                const isPaid = tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'TRADE_FINISHED';
+                
+                // 如果支付宝显示已支付但数据库还没更新，主动更新数据库
+                if (isPaid) {
+                    try {
+                        await query(
+                            `UPDATE qcore_payments 
+                             SET status = 'paid', transaction_id = $1, paid_at = NOW(), updated_at = NOW()
+                             WHERE out_trade_no = $2 AND status = 'pending'
+                             RETURNING id`,
+                            [alipayResult.tradeNo, order_id]
+                        );
+                        console.log('✅ 通过主动查询更新了支付状态, order_id:', order_id);
+                    } catch (updateErr) {
+                        console.log('⚠️ 更新数据库失败:', updateErr.message);
+                    }
+                }
+                
+                return res.json({
+                    success: true,
+                    data: {
+                        status: isPaid ? 'paid' : (tradeStatus === 'TRADE_CLOSED' ? 'closed' : 'pending'),
+                        amount: parseFloat(alipayResult.totalAmount),
+                        transactionId: alipayResult.tradeNo,
+                    }
+                });
+            }
+            
+            // 支付宝查询失败（订单不存在等）
+            return res.json({
+                success: true,
+                data: {
+                    status: 'pending',
+                }
+            });
+            
+        } catch (queryErr) {
+            console.log('⚠️ 支付宝查询失败:', queryErr.message);
+            return res.json({
+                success: true,
+                data: {
+                    status: 'pending',
+                }
+            });
+        }
+        
+    } catch (err) {
+        console.error('查询支付状态失败:', err.message);
         res.status(500).json({ success: false, error: '查询失败' });
     }
 });
@@ -689,7 +787,6 @@ app.post('/api/alipay/pay', async (req, res) => {
     }
     
     try {
-        // 先创建数据库订单记录
         const tierMap = {
             'early_bird': '早鸟价',
             'second_batch': '第二批', 
@@ -697,18 +794,27 @@ app.post('/api/alipay/pay', async (req, res) => {
             'regular': '原价'
         };
         
-        // 尝试保存到数据库（如果数据库可用）
+        // 确保 out_trade_no 列存在
         try {
-            await query(
+            await query(`ALTER TABLE qcore_payments ADD COLUMN IF NOT EXISTS out_trade_no VARCHAR(128)`);
+        } catch (e) {
+            console.log('⚠️ 添加 out_trade_no 列失败:', e.message);
+        }
+        
+        // 创建数据库订单记录
+        let paymentId = null;
+        try {
+            const dbResult = await query(
                 `INSERT INTO qcore_payments 
-                (application_id, user_id, tier, amount, status, batch_number)
-                VALUES ($1, $2, $3, $4, 'pending', 1)
-                ON CONFLICT DO NOTHING`,
-                [0, 0, plan, amount]
+                (application_id, user_id, tier, amount, status, batch_number, out_trade_no)
+                VALUES ($1, $2, $3, $4, 'pending', 1, $5)
+                RETURNING id`,
+                [0, 0, plan, amount, orderId]
             );
+            paymentId = dbResult.rows[0]?.id;
+            console.log('✅ 数据库订单已创建, payment_id:', paymentId, ', out_trade_no:', orderId);
         } catch (dbErr) {
-            console.log('⚠️ 数据库保存失败（可能表不存在）:', dbErr.message);
-            // 继续执行，不阻塞支付流程
+            console.log('⚠️ 数据库保存失败:', dbErr.message);
         }
         
         // 调用支付宝创建支付
@@ -727,7 +833,11 @@ app.post('/api/alipay/pay', async (req, res) => {
         });
         
         console.log('✅ 支付宝表单生成成功');
-        res.json({ formHtml: result });
+        res.json({ 
+            formHtml: result,
+            paymentId: paymentId,
+            orderId: orderId
+        });
         
     } catch (err) {
         console.error('❌ 创建支付订单失败:', err.message);
@@ -755,7 +865,11 @@ app.listen(PORT, () => {
     console.log('   GET  /api/tiers/available    - 获取可用档位');
     console.log('   GET  /api/payments/page-init - 支付页面初始化');
     console.log('   POST /api/payments/create    - 创建支付订单');
-    console.log('   POST /api/alipay/notify      - 支付宝回调');
-    console.log('   GET  /api/payments/result    - 查询支付结果');
+    console.log('   POST /api/alipay/pay         - 兼容支付接口（返回表单HTML）');
+    console.log('   POST /api/alipay/notify      - 支付宝异步通知');
+    console.log('   GET  /api/payments/result    - 查询支付结果（按payment_id）');
+    console.log('   GET  /api/payments/query     - 查询支付状态（按order_id，前端轮询用）');
+    console.log('   POST /api/auth/login         - 用户登录');
+    console.log('   GET  /api/auth/me            - 获取当前用户信息');
     console.log('');
 });

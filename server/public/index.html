@@ -820,6 +820,262 @@
             color: var(--primary-light);
         }
 
+        /* 支付遮罩层 */
+        .payment-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .payment-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .payment-waiting-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 480px;
+            max-width: 90vw;
+            text-align: center;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s;
+        }
+
+        .payment-overlay.active .payment-waiting-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .waiting-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
+        }
+
+        .waiting-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .waiting-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* 倒计时 */
+        .countdown-container {
+            margin-bottom: 2rem;
+        }
+
+        .countdown-ring {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+
+        .countdown-ring svg {
+            transform: rotate(-90deg);
+            width: 120px;
+            height: 120px;
+        }
+
+        .countdown-ring .ring-bg {
+            fill: none;
+            stroke: var(--bg-light);
+            stroke-width: 6;
+        }
+
+        .countdown-ring .ring-progress {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 326.73;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s;
+        }
+
+        .countdown-ring .ring-progress.warning {
+            stroke: var(--warning);
+        }
+
+        .countdown-ring .ring-progress.danger {
+            stroke: var(--error);
+        }
+
+        .countdown-number {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .countdown-number.warning {
+            color: var(--warning);
+        }
+
+        .countdown-number.danger {
+            color: var(--error);
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .countdown-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* 支付状态信息 */
+        .payment-status-info {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            font-size: 0.9rem;
+        }
+
+        .status-label {
+            color: var(--text-secondary);
+        }
+
+        .status-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* 支付结果状态 */
+        .payment-result {
+            display: none;
+        }
+
+        .payment-result.active {
+            display: block;
+        }
+
+        .result-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+
+        .result-icon.success {
+            background: rgba(16, 185, 129, 0.15);
+            animation: successBounce 0.6s ease-out;
+        }
+
+        .result-icon.failed {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        @keyframes successBounce {
+            0% { transform: scale(0); }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-title.success {
+            color: var(--success);
+        }
+
+        .result-title.failed {
+            color: var(--error);
+        }
+
+        .result-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .result-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .result-btn.primary {
+            background: var(--gradient-1);
+            color: white;
+        }
+
+        .result-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .result-btn.secondary {
+            background: var(--bg-light);
+            color: var(--text-primary);
+        }
+
+        .result-btn.secondary:hover {
+            background: var(--border);
+        }
+
         /* 隐藏 */
         .hidden {
             display: none !important;
@@ -892,6 +1148,79 @@
                     <span>登录</span>
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- 支付等待遮罩层 -->
+    <div class="payment-overlay" id="paymentOverlay">
+        <div class="payment-waiting-card">
+            <!-- 等待支付状态 -->
+            <div id="waitingState">
+                <div class="waiting-icon">💳</div>
+                <div class="waiting-title">等待支付完成</div>
+                <div class="waiting-desc">请在弹出的支付宝页面中完成支付<br>支付完成后将自动检测结果</div>
+
+                <!-- 倒计时 -->
+                <div class="countdown-container">
+                    <div class="countdown-ring">
+                        <svg viewBox="0 0 120 120">
+                            <circle class="ring-bg" cx="60" cy="60" r="52"></circle>
+                            <circle class="ring-progress" id="countdownProgress" cx="60" cy="60" r="52"></circle>
+                        </svg>
+                        <div class="countdown-number" id="countdownNumber">5:00</div>
+                    </div>
+                    <div class="countdown-label">支付剩余时间</div>
+                </div>
+
+                <!-- 订单信息 -->
+                <div class="payment-status-info">
+                    <div class="status-row">
+                        <span class="status-label">订单号</span>
+                        <span class="status-value" id="overlayOrderId">-</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">支付金额</span>
+                        <span class="status-value" id="overlayAmount">-</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">支付档位</span>
+                        <span class="status-value" id="overlayTier">-</span>
+                    </div>
+                </div>
+
+                <button class="result-btn secondary" id="cancelPaymentBtn" style="width:100%;">取消支付</button>
+            </div>
+
+            <!-- 支付成功状态 -->
+            <div class="payment-result" id="successState">
+                <div class="result-icon success">✅</div>
+                <div class="result-title success">支付成功</div>
+                <div class="result-desc">恭喜你成为 Q-core 2026 的一员！<br>确认邮件已发送至你的邮箱</div>
+                <div class="payment-status-info" style="margin-bottom: 1.5rem;">
+                    <div class="status-row">
+                        <span class="status-label">订单号</span>
+                        <span class="status-value" id="successOrderId">-</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-label">支付金额</span>
+                        <span class="status-value" id="successAmount">-</span>
+                    </div>
+                </div>
+                <div class="result-actions">
+                    <button class="result-btn primary" id="successCloseBtn">完成</button>
+                </div>
+            </div>
+
+            <!-- 支付失败/超时状态 -->
+            <div class="payment-result" id="failedState">
+                <div class="result-icon failed">⏰</div>
+                <div class="result-title failed" id="failedTitle">支付超时</div>
+                <div class="result-desc" id="failedDesc">支付时间已过，订单已取消。<br>如已扣款，款项将在1-3个工作日内原路退回。</div>
+                <div class="result-actions">
+                    <button class="result-btn primary" id="retryPayBtn">重新支付</button>
+                    <button class="result-btn secondary" id="failedCloseBtn">关闭</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1133,15 +1462,22 @@
     <script>
         // 配置
         const CONFIG = {
-            apiBase: 'https://api.asp.cool'
+            apiBase: 'https://api.asp.cool',
+            countdownSeconds: 300, // 5分钟倒计时
+            pollInterval: 3000,    // 每3秒轮询一次
         };
 
         // 全局状态
         const state = {
             selectedTier: 'early_bird',
-            selectedAmount: 9800,
+            selectedAmount: 1,
             token: localStorage.getItem('qcore_token') || null,
-            user: JSON.parse(localStorage.getItem('qcore_user') || 'null')
+            user: JSON.parse(localStorage.getItem('qcore_user') || 'null'),
+            paymentWindow: null,       // 支付宝弹窗引用
+            countdownTimer: null,      // 倒计时定时器
+            pollTimer: null,           // 轮询定时器
+            remainingSeconds: CONFIG.countdownSeconds,
+            currentOrderId: null,      // 当前支付订单号
         };
 
         // ==========================================
@@ -1186,13 +1522,10 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    // 保存登录状态
                     state.token = result.data.token;
                     state.user = result.data.user;
                     localStorage.setItem('qcore_token', result.data.token);
                     localStorage.setItem('qcore_user', JSON.stringify(result.data.user));
-                    
-                    // 更新 UI
                     updateLoginUI();
                     loginModal.classList.remove('active');
                     loginForm.reset();
@@ -1259,22 +1592,16 @@
         // 选择档位
         document.querySelectorAll('.tier-option').forEach(option => {
             option.addEventListener('click', function() {
-                // 移除其他选中状态
                 document.querySelectorAll('.tier-option').forEach(o => o.classList.remove('selected'));
-                // 添加当前选中状态
                 this.classList.add('selected');
 
-                // 更新状态
                 state.selectedTier = this.dataset.tier;
                 state.selectedAmount = parseInt(this.dataset.amount);
 
-                // 更新价格显示
                 document.getElementById('selectedPrice').textContent = state.selectedAmount.toLocaleString();
                 
-                // 更新原价显示
                 const originalPrice = document.getElementById('originalPrice');
-                const selectedOption = document.querySelector(`.tier-option[data-tier="${tierName}"]`);
-                const originalAmount = selectedOption ? selectedOption.dataset.original : '';
+                const originalAmount = this.dataset.original;
                 
                 if (originalAmount) {
                     originalPrice.textContent = '¥' + parseInt(originalAmount).toLocaleString();
@@ -1302,7 +1629,183 @@
             document.getElementById('messageBox').classList.add('hidden');
         }
 
-        // 支付按钮点击
+        // ==========================================
+        // 支付遮罩层控制
+        // ==========================================
+        const paymentOverlay = document.getElementById('paymentOverlay');
+        const waitingState = document.getElementById('waitingState');
+        const successState = document.getElementById('successState');
+        const failedState = document.getElementById('failedState');
+
+        // 档位名称映射
+        const tierNameMap = {
+            'early_bird': '早鸟价',
+            'second_batch': '第二批',
+            'third_batch': '第三批',
+            'regular': '原价'
+        };
+
+        // 显示遮罩层 - 等待状态
+        function showPaymentOverlay(orderId, amount, tier) {
+            // 重置所有状态
+            waitingState.style.display = 'block';
+            successState.classList.remove('active');
+            failedState.classList.remove('active');
+
+            // 填充订单信息
+            document.getElementById('overlayOrderId').textContent = orderId;
+            document.getElementById('overlayAmount').textContent = '¥' + parseFloat(amount).toFixed(2);
+            document.getElementById('overlayTier').textContent = tierNameMap[tier] || tier;
+
+            // 重置倒计时
+            state.remainingSeconds = CONFIG.countdownSeconds;
+            updateCountdownDisplay();
+
+            // 显示遮罩
+            paymentOverlay.classList.add('active');
+        }
+
+        // 显示支付成功
+        function showPaymentSuccess(orderId, amount) {
+            waitingState.style.display = 'none';
+            successState.classList.add('active');
+            failedState.classList.remove('active');
+
+            document.getElementById('successOrderId').textContent = orderId;
+            document.getElementById('successAmount').textContent = '¥' + parseFloat(amount).toFixed(2);
+
+            // 关闭支付宝窗口
+            closePaymentWindow();
+        }
+
+        // 显示支付失败/超时
+        function showPaymentFailed(title, desc) {
+            waitingState.style.display = 'none';
+            successState.classList.remove('active');
+            failedState.classList.add('active');
+
+            document.getElementById('failedTitle').textContent = title || '支付超时';
+            document.getElementById('failedDesc').innerHTML = desc || '支付时间已过，订单已取消。<br>如已扣款，款项将在1-3个工作日内原路退回。';
+
+            closePaymentWindow();
+        }
+
+        // 关闭遮罩层
+        function closePaymentOverlay() {
+            paymentOverlay.classList.remove('active');
+            stopCountdown();
+            stopPolling();
+            closePaymentWindow();
+        }
+
+        // 关闭支付宝弹窗
+        function closePaymentWindow() {
+            if (state.paymentWindow && !state.paymentWindow.closed) {
+                try {
+                    state.paymentWindow.close();
+                } catch (e) {
+                    // 忽略跨域错误
+                }
+            }
+            state.paymentWindow = null;
+        }
+
+        // ==========================================
+        // 倒计时逻辑
+        // ==========================================
+        function startCountdown() {
+            stopCountdown();
+            state.countdownTimer = setInterval(() => {
+                state.remainingSeconds--;
+                updateCountdownDisplay();
+
+                if (state.remainingSeconds <= 0) {
+                    stopCountdown();
+                    stopPolling();
+                    showPaymentFailed('支付超时', '支付时间已过，订单已取消。<br>如已扣款，款项将在1-3个工作日内原路退回。');
+                }
+            }, 1000);
+        }
+
+        function stopCountdown() {
+            if (state.countdownTimer) {
+                clearInterval(state.countdownTimer);
+                state.countdownTimer = null;
+            }
+        }
+
+        function updateCountdownDisplay() {
+            const total = CONFIG.countdownSeconds;
+            const remaining = state.remainingSeconds;
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+
+            // 更新数字
+            const numberEl = document.getElementById('countdownNumber');
+            numberEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            // 更新进度环
+            const progress = document.getElementById('countdownProgress');
+            const circumference = 2 * Math.PI * 52; // r=52
+            const offset = circumference * (1 - remaining / total);
+            progress.style.strokeDashoffset = offset;
+
+            // 颜色状态
+            numberEl.classList.remove('warning', 'danger');
+            progress.classList.remove('warning', 'danger');
+
+            if (remaining <= 60) {
+                numberEl.classList.add('danger');
+                progress.classList.add('danger');
+            } else if (remaining <= 120) {
+                numberEl.classList.add('warning');
+                progress.classList.add('warning');
+            }
+        }
+
+        // ==========================================
+        // 轮询支付结果
+        // ==========================================
+        function startPolling(orderId) {
+            stopPolling();
+            
+            // 立即查询一次
+            pollPaymentResult(orderId);
+
+            state.pollTimer = setInterval(() => {
+                pollPaymentResult(orderId);
+            }, CONFIG.pollInterval);
+        }
+
+        function stopPolling() {
+            if (state.pollTimer) {
+                clearInterval(state.pollTimer);
+                state.pollTimer = null;
+            }
+        }
+
+        async function pollPaymentResult(orderId) {
+            try {
+                // 通过订单号查询支付状态
+                const response = await fetch(`${CONFIG.apiBase}/api/payments/query?order_id=${encodeURIComponent(orderId)}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    if (result.data.status === 'paid') {
+                        // 支付成功！
+                        stopPolling();
+                        stopCountdown();
+                        showPaymentSuccess(orderId, result.data.amount);
+                    }
+                }
+            } catch (err) {
+                console.log('轮询查询出错（继续重试）:', err.message);
+            }
+        }
+
+        // ==========================================
+        // 支付按钮点击 - 核心流程
+        // ==========================================
         document.getElementById('payButton').addEventListener('click', async function() {
             const button = this;
             
@@ -1313,6 +1816,7 @@
 
             try {
                 const orderId = generateOrderId();
+                state.currentOrderId = orderId;
                 
                 const response = await fetch(`${CONFIG.apiBase}/api/alipay/pay`, {
                     method: 'POST',
@@ -1328,25 +1832,43 @@
                 const data = await response.json();
 
                 if (data.formHtml) {
-                    // 1. 把表单HTML存到 sessionStorage，供倒计时页面使用
-                    sessionStorage.setItem('alipay_formHtml', data.formHtml);
-                    sessionStorage.setItem('alipay_orderId', orderId);
-                    sessionStorage.setItem('alipay_tier', state.selectedTier);
-                    sessionStorage.setItem('alipay_amount', state.selectedAmount);
+                    // 1. 在新窗口中打开支付宝支付页面（用户点击上下文，不会被拦截）
+                    const payWindow = window.open('about:blank', '_blank', 'width=1000,height=700,left=100,top=100');
                     
-                    // 2. 在当前页面直接提交支付宝表单（用户点击触发，不会被拦截）
-                    const container = document.createElement('div');
-                    container.innerHTML = data.formHtml;
-                    document.body.appendChild(container);
-                    const form = container.querySelector('form');
-                    if (form) {
-                        form.submit();
-                    } else {
-                        throw new Error('支付宝支付表单生成失败');
+                    if (!payWindow) {
+                        // 弹窗被拦截
+                        showMessage('请允许弹出窗口后重试', 'error');
+                        button.disabled = false;
+                        button.classList.remove('loading');
+                        button.innerHTML = '<span>确认支付</span>';
+                        return;
                     }
-                    
-                    // 3. 同时跳转到倒计时页面（在新标签页打开）
-                    window.open('/payment-waiting.html', '_blank');
+
+                    state.paymentWindow = payWindow;
+
+                    // 2. 将支付宝表单写入新窗口并提交
+                    payWindow.document.write(data.formHtml);
+                    payWindow.document.close();
+
+                    // 3. 在当前页面显示支付遮罩层 + 倒计时
+                    showPaymentOverlay(orderId, state.selectedAmount, state.selectedTier);
+
+                    // 4. 启动倒计时
+                    startCountdown();
+
+                    // 5. 启动轮询支付结果
+                    startPolling(orderId);
+
+                    // 6. 监听支付宝窗口关闭
+                    const checkClosed = setInterval(() => {
+                        if (payWindow.closed) {
+                            clearInterval(checkClosed);
+                            // 如果窗口被用户手动关闭，不立即判定失败，继续轮询
+                            // 因为用户可能已经完成支付
+                            console.log('支付宝窗口已关闭，继续轮询支付结果...');
+                        }
+                    }, 1000);
+
                 } else {
                     throw new Error(data.error || '创建订单失败');
                 }
@@ -1358,6 +1880,55 @@
                 button.classList.remove('loading');
                 button.innerHTML = '<span>确认支付</span>';
             }
+        });
+
+        // ==========================================
+        // 遮罩层按钮事件
+        // ==========================================
+
+        // 取消支付
+        document.getElementById('cancelPaymentBtn').addEventListener('click', () => {
+            closePaymentOverlay();
+            // 恢复支付按钮
+            const button = document.getElementById('payButton');
+            button.disabled = false;
+            button.classList.remove('loading');
+            button.innerHTML = '<span>确认支付</span>';
+        });
+
+        // 支付成功 - 关闭
+        document.getElementById('successCloseBtn').addEventListener('click', () => {
+            closePaymentOverlay();
+            // 更新支付按钮状态
+            const button = document.getElementById('payButton');
+            button.innerHTML = '✅ 已支付';
+            button.disabled = true;
+            button.style.background = 'var(--success)';
+        });
+
+        // 支付失败 - 重新支付
+        document.getElementById('retryPayBtn').addEventListener('click', () => {
+            closePaymentOverlay();
+            const button = document.getElementById('payButton');
+            button.disabled = false;
+            button.classList.remove('loading');
+            button.innerHTML = '<span>确认支付</span>';
+        });
+
+        // 支付失败 - 关闭
+        document.getElementById('failedCloseBtn').addEventListener('click', () => {
+            closePaymentOverlay();
+            const button = document.getElementById('payButton');
+            button.disabled = false;
+            button.classList.remove('loading');
+            button.innerHTML = '<span>确认支付</span>';
+        });
+
+        // 页面关闭前清理
+        window.addEventListener('beforeunload', () => {
+            closePaymentWindow();
+            stopCountdown();
+            stopPolling();
         });
     </script>
 </body>
