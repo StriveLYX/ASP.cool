@@ -177,7 +177,7 @@ app.get('/api/auth/verify', async (req, res) => {
         
         // 从数据库获取用户信息
         const userResult = await query(
-            'SELECT id, email, name, created_at FROM users WHERE id = $1',
+            'SELECT id, email, full_name, created_at FROM users WHERE id = $1',
             [decoded.userId]
         );
         
@@ -199,7 +199,7 @@ app.get('/api/auth/verify', async (req, res) => {
                 user: {
                     id: user.id,
                     email: user.email,
-                    name: user.name,
+                    name: user.full_name,
                 },
                 application: appResult.rows[0] || null,
             }
@@ -581,7 +581,7 @@ app.post('/api/auth/login', async (req, res) => {
     
     try {
         const result = await query(
-            'SELECT id, email, name, password_hash, created_at FROM users WHERE email = $1',
+            'SELECT id, email, full_name, password_hash, created_at FROM users WHERE email = $1',
             [email]
         );
         
@@ -609,7 +609,7 @@ app.post('/api/auth/login', async (req, res) => {
         
         // 生成 JWT Token
         const token = jwt.sign(
-            { userId: user.id, email: user.email, name: user.name },
+            { userId: user.id, email: user.email, name: user.full_name },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -623,7 +623,7 @@ app.post('/api/auth/login', async (req, res) => {
                 user: {
                     id: user.id,
                     email: user.email,
-                    name: user.name,
+                    name: user.full_name,
                 }
             }
         });
@@ -641,7 +641,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', verifyToken, async (req, res) => {
     try {
         const result = await query(
-            'SELECT id, email, name, created_at FROM users WHERE id = $1',
+            'SELECT id, email, full_name, created_at FROM users WHERE id = $1',
             [req.user.userId]
         );
         
@@ -663,7 +663,7 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
                 user: {
                     id: user.id,
                     email: user.email,
-                    name: user.name,
+                    name: user.full_name,
                 },
                 payments: payments.rows
             }
