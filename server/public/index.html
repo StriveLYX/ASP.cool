@@ -1825,7 +1825,8 @@
                         orderId: orderId,
                         plan: state.selectedTier,
                         billing: 'full',
-                        amount: state.selectedAmount
+                        amount: state.selectedAmount,
+                        userId: state.user?.id || null
                     })
                 });
 

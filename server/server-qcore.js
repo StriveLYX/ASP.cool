@@ -780,7 +780,7 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
 app.post('/api/alipay/pay', async (req, res) => {
     console.log('📦 收到支付请求:', req.body);
     
-    const { orderId, plan, billing, amount } = req.body;
+    const { orderId, plan, billing, amount, userId } = req.body;
     
     if (!orderId || !amount) {
         return res.status(400).json({ error: '缺少必要参数: orderId, amount' });
@@ -809,10 +809,10 @@ app.post('/api/alipay/pay', async (req, res) => {
                 (application_id, user_id, tier, amount, status, batch_number, out_trade_no)
                 VALUES ($1, $2, $3, $4, 'pending', 1, $5)
                 RETURNING id`,
-                [0, 0, plan, amount, orderId]
+                [0, userId || 0, plan, amount, orderId]
             );
             paymentId = dbResult.rows[0]?.id;
-            console.log('✅ 数据库订单已创建, payment_id:', paymentId, ', out_trade_no:', orderId);
+            console.log('✅ 数据库订单已创建, payment_id:', paymentId, ', user_id:', userId, ', out_trade_no:', orderId);
         } catch (dbErr) {
             console.log('⚠️ 数据库保存失败:', dbErr.message);
         }
