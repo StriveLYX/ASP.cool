@@ -69,7 +69,7 @@ const ALIPAY_CONFIG = {
 
     // 支付宝网关地址
     gateway: isSandbox
-        ? 'https://openapi-sandbox.dl.alipaydev.com/gateway.do'
+        ? 'https://openapi.alipaydev.com/gateway.do'  // 新沙箱环境地址
         : 'https://openapi.alipay.com/gateway.do',
 
     // 应用私钥（仅保存在服务端，绝对不能泄露）
@@ -158,6 +158,10 @@ app.post('/api/alipay/pay', async (req, res) => {
 
         // 调用支付宝 alipay.trade.page.pay 接口
         // 电脑网站支付：生成表单 HTML，前端自动提交跳转到支付宝收银台
+        console.log('🔧 调用支付宝接口...');
+        console.log('   网关:', ALIPAY_CONFIG.gateway);
+        console.log('   AppID:', ALIPAY_CONFIG.appId);
+        
         const result = await alipaySdk.pageExec('alipay.trade.page.pay', {
             notifyUrl: ALIPAY_CONFIG.notifyUrl,
             returnUrl: ALIPAY_CONFIG.returnUrl,
@@ -170,6 +174,8 @@ app.post('/api/alipay/pay', async (req, res) => {
                 // timeout_express: '30m',         // 超时关闭时间（可选）
             },
         });
+        
+        console.log('📤 支付宝返回结果:', result);
 
         // 保存订单到内存
         orders.set(orderId, {
@@ -194,7 +200,15 @@ app.post('/api/alipay/pay', async (req, res) => {
 
     } catch (err) {
         console.error('❌ 创建支付订单失败:', err.message);
-        res.status(500).json({ error: '创建支付订单失败: ' + err.message });
+        console.error('   错误详情:', err);
+        console.error('   错误堆栈:', err.stack);
+        if (err.response) {
+            console.error('   支付宝响应:', err.response);
+        }
+        res.status(500).json({ 
+            error: '创建支付订单失败: ' + err.message,
+            details: err.response || '无详细错误信息'
+        });
     }
 });
 
