@@ -542,102 +542,24 @@
             color: var(--text-muted);
         }
 
-        /* 加载状态 */
-        .loading-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 400px;
-            gap: 1rem;
-        }
-
-        .loading-state .spinner {
-            width: 40px;
-            height: 40px;
-            border-width: 3px;
-        }
-
-        /* 错误状态 */
-        .error-state {
+        /* 消息提示 */
+        .message-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
             text-align: center;
-            padding: 3rem;
         }
 
-        .error-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .error-state h3 {
+        .message-box.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
             color: var(--error);
-            margin-bottom: 0.5rem;
         }
 
-        .error-state p {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-        }
-
-        .retry-button {
-            padding: 0.75rem 1.5rem;
-            background: var(--bg-light);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .retry-button:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-        }
-
-        /* 已支付状态 */
-        .paid-state {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .paid-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--success);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            margin: 0 auto 1.5rem;
-        }
-
-        .paid-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .paid-state p {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.875rem 1.5rem;
-            background: var(--gradient-1);
-            border-radius: 10px;
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .back-button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-glow);
+        .message-box.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--success);
         }
 
         /* 页脚 */
@@ -698,7 +620,7 @@
                 <span class="logo-text">ASP.cool</span>
             </a>
             <div class="user-info" id="userInfo">
-                <span>加载中...</span>
+                <span>访客用户</span>
             </div>
         </div>
     </nav>
@@ -711,33 +633,8 @@
             <p>完成支付，正式成为 Q-core 2026 的一员</p>
         </header>
 
-        <!-- 加载状态 -->
-        <div id="loadingState" class="loading-state">
-            <div class="spinner"></div>
-            <p>正在加载支付信息...</p>
-        </div>
-
-        <!-- 错误状态 -->
-        <div id="errorState" class="error-state hidden">
-            <div class="error-icon">⚠️</div>
-            <h3>加载失败</h3>
-            <p id="errorMessage">无法获取支付信息，请稍后重试</p>
-            <button class="retry-button" onclick="location.reload()">重新加载</button>
-        </div>
-
-        <!-- 已支付状态 -->
-        <div id="paidState" class="paid-state hidden">
-            <div class="paid-icon">✓</div>
-            <h3>支付成功！</h3>
-            <p>欢迎加入 Q-core 2026，你的创造之旅即将开始</p>
-            <a href="https://camp26.asp.cool" class="back-button">
-                <span>←</span>
-                <span>返回营地首页</span>
-            </a>
-        </div>
-
         <!-- 主要内容 -->
-        <div id="mainContent" class="content-grid hidden">
+        <div class="content-grid">
             <!-- 左侧：课程介绍 -->
             <div class="course-section">
                 <!-- 课程概览 -->
@@ -871,22 +768,77 @@
                     <div class="payment-header">
                         <div class="payment-label">选择你的档位</div>
                         <div class="payment-amount">
-                            ¥<span id="selectedPrice">--</span>
-                            <span class="payment-original" id="originalPrice"></span>
+                            ¥<span id="selectedPrice">9,800</span>
+                            <span class="payment-original" id="originalPrice">¥15,800</span>
                         </div>
                     </div>
 
                     <!-- 档位列表 -->
                     <div class="tier-list" id="tierList">
-                        <div class="loading-state">
-                            <div class="spinner"></div>
+                        <div class="tier-option selected" data-tier="early_bird" data-amount="9800">
+                            <div class="tier-radio"></div>
+                            <div class="tier-info">
+                                <div class="tier-name">
+                                    早鸟价
+                                    <span class="tier-badge">限前30名</span>
+                                </div>
+                                <div class="tier-remaining">剩余 30 个名额</div>
+                            </div>
+                            <div class="tier-price">
+                                <div class="tier-amount">¥9,800</div>
+                                <div class="tier-original">¥15,800</div>
+                            </div>
+                        </div>
+
+                        <div class="tier-option" data-tier="second_batch" data-amount="11800">
+                            <div class="tier-radio"></div>
+                            <div class="tier-info">
+                                <div class="tier-name">
+                                    第二批
+                                    <span class="tier-badge">限前60名</span>
+                                </div>
+                                <div class="tier-remaining">剩余 60 个名额</div>
+                            </div>
+                            <div class="tier-price">
+                                <div class="tier-amount">¥11,800</div>
+                                <div class="tier-original">¥15,800</div>
+                            </div>
+                        </div>
+
+                        <div class="tier-option" data-tier="third_batch" data-amount="13800">
+                            <div class="tier-radio"></div>
+                            <div class="tier-info">
+                                <div class="tier-name">
+                                    第三批
+                                    <span class="tier-badge">限前100名</span>
+                                </div>
+                                <div class="tier-remaining">剩余 100 个名额</div>
+                            </div>
+                            <div class="tier-price">
+                                <div class="tier-amount">¥13,800</div>
+                                <div class="tier-original">¥15,800</div>
+                            </div>
+                        </div>
+
+                        <div class="tier-option" data-tier="regular" data-amount="15800">
+                            <div class="tier-radio"></div>
+                            <div class="tier-info">
+                                <div class="tier-name">原价</div>
+                                <div class="tier-remaining">不限名额</div>
+                            </div>
+                            <div class="tier-price">
+                                <div class="tier-amount">¥15,800</div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- 支付按钮 -->
-                    <button class="pay-button" id="payButton" disabled>
+                    <button class="pay-button" id="payButton">
                         <span>确认支付</span>
                     </button>
+
+                    <!-- 消息提示 -->
+                    <div id="messageBox" class="message-box hidden"></div>
 
                     <div class="security-note">
                         <span>🔒</span>
@@ -908,221 +860,112 @@
     </main>
 
     <script>
-        // 全局状态
-        const state = {
-            token: null,
-            appId: null,
-            user: null,
-            application: null,
-            tiers: [],
-            selectedTier: null,
-            loading: true
+        // 配置
+        const CONFIG = {
+            apiBase: 'https://api.asp.cool'
         };
 
-        // 获取 URL 参数
-        function getUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            return {
-                token: params.get('token'),
-                app_id: params.get('app_id')
-            };
-        }
-
-        // 初始化页面
-        async function init() {
-            const { token, app_id } = getUrlParams();
-            
-            if (!token || !app_id) {
-                showError('缺少必要的参数，请从邮件中的链接进入');
-                return;
-            }
-
-            state.token = token;
-            state.appId = app_id;
-
-            try {
-                // 加载支付页面数据
-                const response = await fetch(`/api/payments/page-init?token=${token}&app_id=${app_id}`);
-                const result = await response.json();
-
-                if (!result.success) {
-                    showError(result.error || '加载失败');
-                    return;
-                }
-
-                const { user, application, availableTiers, alreadyPaid } = result.data;
-
-                // 如果已支付
-                if (alreadyPaid) {
-                    document.getElementById('loadingState').classList.add('hidden');
-                    document.getElementById('paidState').classList.remove('hidden');
-                    return;
-                }
-
-                state.user = user;
-                state.application = application;
-                state.tiers = availableTiers;
-
-                // 更新 UI
-                updateUserInfo(user);
-                renderTiers(availableTiers);
-
-                // 显示主内容
-                document.getElementById('loadingState').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-
-            } catch (error) {
-                console.error('初始化失败:', error);
-                showError('网络错误，请检查连接后重试');
-            }
-        }
-
-        // 更新用户信息
-        function updateUserInfo(user) {
-            const userInfo = document.getElementById('userInfo');
-            const initial = user.name ? user.name[0].toUpperCase() : user.email[0].toUpperCase();
-            userInfo.innerHTML = `
-                <span>${user.name || user.email}</span>
-                <div class="user-avatar">${initial}</div>
-            `;
-        }
-
-        // 渲染档位列表
-        function renderTiers(tiers) {
-            const tierList = document.getElementById('tierList');
-            
-            if (tiers.length === 0) {
-                tierList.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">暂无可用档位</p>';
-                return;
-            }
-
-            // 默认选择第一个可用档位
-            const firstAvailable = tiers.find(t => t.available) || tiers[0];
-            state.selectedTier = firstAvailable;
-            updateSelectedPrice(firstAvailable);
-
-            tierList.innerHTML = tiers.map((tier, index) => {
-                const isSelected = tier.tier === firstAvailable.tier;
-                const isDisabled = !tier.available;
-                const discount = tier.tier === 'early_bird' ? '早鸟' : 
-                                tier.tier === 'second_batch' ? '第二批' :
-                                tier.tier === 'third_batch' ? '第三批' : '';
-                
-                return `
-                    <div class="tier-option ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}" 
-                         data-tier="${tier.tier}"
-                         onclick="${isDisabled ? '' : `selectTier('${tier.tier}')`}">
-                        <div class="tier-radio"></div>
-                        <div class="tier-info">
-                            <div class="tier-name">
-                                ${tier.name}
-                                ${discount ? `<span class="tier-badge">${discount}</span>` : ''}
-                            </div>
-                            <div class="tier-remaining">
-                                ${tier.remaining > 0 ? `剩余 ${tier.remaining} 个名额` : '已满'}
-                            </div>
-                        </div>
-                        <div class="tier-price">
-                            <div class="tier-amount">¥${tier.amount.toLocaleString()}</div>
-                            ${tier.tier !== 'regular' ? '<div class="tier-original">¥15,800</div>' : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            // 启用支付按钮
-            document.getElementById('payButton').disabled = false;
-        }
+        // 全局状态
+        const state = {
+            selectedTier: 'early_bird',
+            selectedAmount: 9800
+        };
 
         // 选择档位
-        function selectTier(tierName) {
-            const tier = state.tiers.find(t => t.tier === tierName);
-            if (!tier || !tier.available) return;
+        document.querySelectorAll('.tier-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // 移除其他选中状态
+                document.querySelectorAll('.tier-option').forEach(o => o.classList.remove('selected'));
+                // 添加当前选中状态
+                this.classList.add('selected');
 
-            state.selectedTier = tier;
-            updateSelectedPrice(tier);
+                // 更新状态
+                state.selectedTier = this.dataset.tier;
+                state.selectedAmount = parseInt(this.dataset.amount);
 
-            // 更新 UI
-            document.querySelectorAll('.tier-option').forEach(el => {
-                el.classList.toggle('selected', el.dataset.tier === tierName);
+                // 更新价格显示
+                document.getElementById('selectedPrice').textContent = state.selectedAmount.toLocaleString();
+                
+                // 更新原价显示
+                const originalPrice = document.getElementById('originalPrice');
+                if (state.selectedTier === 'regular') {
+                    originalPrice.textContent = '';
+                } else {
+                    originalPrice.textContent = '¥15,800';
+                }
             });
+        });
+
+        // 生成订单号
+        function generateOrderId() {
+            return 'QC' + Date.now() + '_' + Math.random().toString(36).substr(2, 5).toUpperCase();
         }
 
-        // 更新选中价格
-        function updateSelectedPrice(tier) {
-            document.getElementById('selectedPrice').textContent = tier.amount.toLocaleString();
-            const originalPrice = document.getElementById('originalPrice');
-            if (tier.tier !== 'regular') {
-                originalPrice.textContent = '¥15,800';
-            } else {
-                originalPrice.textContent = '';
-            }
+        // 显示消息
+        function showMessage(text, type) {
+            const box = document.getElementById('messageBox');
+            box.textContent = text;
+            box.className = 'message-box ' + type;
+            box.classList.remove('hidden');
         }
 
-        // 显示错误
-        function showError(message) {
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('errorState').classList.remove('hidden');
-            document.getElementById('errorMessage').textContent = message;
+        // 隐藏消息
+        function hideMessage() {
+            document.getElementById('messageBox').classList.add('hidden');
         }
 
         // 支付按钮点击
-        document.getElementById('payButton').addEventListener('click', async () => {
-            if (!state.selectedTier) return;
-
-            const button = document.getElementById('payButton');
+        document.getElementById('payButton').addEventListener('click', async function() {
+            const button = this;
+            
             button.disabled = true;
             button.classList.add('loading');
             button.innerHTML = '<div class="spinner"></div><span>正在创建订单...</span>';
+            hideMessage();
 
             try {
-                const response = await fetch('/api/payments/create', {
+                const orderId = generateOrderId();
+                
+                const response = await fetch(`${CONFIG.apiBase}/api/alipay/pay`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        token: state.token,
-                        application_id: state.appId,
-                        tier: state.selectedTier.tier
+                        orderId: orderId,
+                        plan: state.selectedTier,
+                        billing: 'full',
+                        amount: state.selectedAmount
                     })
                 });
 
-                const result = await response.json();
+                const data = await response.json();
 
-                if (!result.success) {
-                    alert(result.error || '创建订单失败');
-                    button.disabled = false;
-                    button.classList.remove('loading');
-                    button.innerHTML = '<span>确认支付</span>';
-                    return;
-                }
-
-                // 插入支付宝表单并提交
-                const container = document.createElement('div');
-                container.innerHTML = result.data.payUrl;
-                document.body.appendChild(container);
-                
-                // 自动提交表单
-                const form = container.querySelector('form');
-                if (form) {
-                    form.submit();
+                if (data.formHtml) {
+                    showMessage('订单创建成功，正在跳转到支付宝...', 'success');
+                    
+                    // 插入支付宝表单并提交
+                    const container = document.createElement('div');
+                    container.style.display = 'none';
+                    container.innerHTML = data.formHtml;
+                    document.body.appendChild(container);
+                    
+                    const form = container.querySelector('form');
+                    if (form) {
+                        form.submit();
+                    } else {
+                        throw new Error('支付宝支付表单生成失败');
+                    }
                 } else {
-                    alert('支付表单加载失败，请重试');
-                    button.disabled = false;
-                    button.classList.remove('loading');
-                    button.innerHTML = '<span>确认支付</span>';
+                    throw new Error(data.error || '创建订单失败');
                 }
 
             } catch (error) {
                 console.error('支付失败:', error);
-                alert('网络错误，请重试');
+                showMessage('支付发起失败: ' + error.message, 'error');
                 button.disabled = false;
                 button.classList.remove('loading');
                 button.innerHTML = '<span>确认支付</span>';
             }
         });
-
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
