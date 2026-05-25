@@ -3,209 +3,1126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASP.cool - 支付宝支付</title>
+    <title>Q-core 2026 支付 - ASP.cool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-light: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+            --gradient-2: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
         }
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
+
+        /* 背景动画 */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
         }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.1) 0%, transparent 40%);
+            animation: bgFloat 20s ease-in-out infinite;
         }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
+
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(1deg); }
+            66% { transform: translate(-20px, 20px) rotate(-1deg); }
         }
-        .plan {
-            border: 2px solid #e0e0e0;
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-1);
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* 主容器 */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 100px 2rem 4rem;
+        }
+
+        /* 页面标题 */
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* 内容网格 */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 课程介绍卡片 */
+        .course-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .card-icon.blue { background: rgba(99, 102, 241, 0.2); }
+        .card-icon.cyan { background: rgba(6, 182, 212, 0.2); }
+        .card-icon.orange { background: rgba(245, 158, 11, 0.2); }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* 课程特色 */
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .feature-item:hover {
+            border-color: var(--border);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--gradient-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .feature-text h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .feature-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* 课程模块 */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .module-card {
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
             transition: all 0.3s;
         }
-        .plan:hover {
-            border-color: #1677ff;
-            transform: translateY(-2px);
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-light);
         }
-        .plan.selected {
-            border-color: #1677ff;
-            background: #f0f7ff;
+
+        .module-number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
         }
-        .plan-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
+
+        .module-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
-        .plan-price {
-            font-size: 24px;
-            color: #1677ff;
-            font-weight: bold;
+
+        .module-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
-        .plan-price span {
-            font-size: 14px;
-            color: #999;
-            font-weight: normal;
+
+        /* 支付侧边栏 */
+        .payment-sidebar {
+            position: sticky;
+            top: 100px;
         }
-        .plan-desc {
-            color: #666;
-            font-size: 14px;
-            margin-top: 8px;
+
+        .payment-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
         }
-        .pay-btn {
-            width: 100%;
-            padding: 15px;
-            background: #1677ff;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
+
+        .payment-header {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .payment-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .payment-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .payment-original {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+            margin-left: 0.5rem;
+        }
+
+        /* 档位选择 */
+        .tier-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tier-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid var(--border);
+            border-radius: 12px;
             cursor: pointer;
-            margin-top: 20px;
-            transition: background 0.3s;
+            transition: all 0.2s;
         }
-        .pay-btn:hover {
-            background: #0958d9;
+
+        .tier-option:hover {
+            border-color: var(--primary-light);
+            background: rgba(99, 102, 241, 0.1);
         }
-        .pay-btn:disabled {
-            background: #ccc;
+
+        .tier-option.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .tier-option.disabled {
+            opacity: 0.5;
             cursor: not-allowed;
         }
-        .error {
-            color: #ff4d4f;
-            text-align: center;
-            padding: 10px;
-            background: #fff2f0;
-            border-radius: 8px;
-            margin-top: 15px;
+
+        .tier-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
-        .success {
-            color: #52c41a;
-            text-align: center;
-            padding: 10px;
-            background: #f6ffed;
-            border-radius: 8px;
-            margin-top: 15px;
+
+        .tier-option.selected .tier-radio {
+            border-color: var(--primary);
+            background: var(--primary);
         }
+
+        .tier-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tier-option.selected .tier-radio::after {
+            opacity: 1;
+        }
+
+        .tier-info {
+            flex: 1;
+        }
+
+        .tier-name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tier-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            background: var(--gradient-2);
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .tier-remaining {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .tier-price {
+            text-align: right;
+        }
+
+        .tier-amount {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .tier-original {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        /* 支付按钮 */
+        .pay-button {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .pay-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .pay-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .pay-button.loading {
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 安全提示 */
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* 加载状态 */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            gap: 1rem;
+        }
+
+        .loading-state .spinner {
+            width: 40px;
+            height: 40px;
+            border-width: 3px;
+        }
+
+        /* 错误状态 */
+        .error-state {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-state h3 {
+            color: var(--error);
+            margin-bottom: 0.5rem;
+        }
+
+        .error-state p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .retry-button {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .retry-button:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* 已支付状态 */
+        .paid-state {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .paid-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .paid-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .paid-state p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            background: var(--gradient-1);
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* 页脚 */
+        .footer {
+            margin-top: 4rem;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-light);
+        }
+
+        /* 隐藏 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>ASP.cool</h1>
-        <p class="subtitle">选择适合您的套餐</p>
+    <div class="bg-animation"></div>
 
-        <div class="plan selected" data-plan="basic" data-amount="1">
-            <div class="plan-name">基础版</div>
-            <div class="plan-price">¥1 <span>/ 月</span></div>
-            <div class="plan-desc">适合个人开发者，包含基础功能</div>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="https://asp.cool" class="logo">
+                <div class="logo-icon">A</div>
+                <span class="logo-text">ASP.cool</span>
+            </a>
+            <div class="user-info" id="userInfo">
+                <span>加载中...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="main-container">
+        <!-- 页面标题 -->
+        <header class="page-header">
+            <h1>确认你的探索之旅</h1>
+            <p>完成支付，正式成为 Q-core 2026 的一员</p>
+        </header>
+
+        <!-- 加载状态 -->
+        <div id="loadingState" class="loading-state">
+            <div class="spinner"></div>
+            <p>正在加载支付信息...</p>
         </div>
 
-        <div class="plan" data-plan="pro" data-amount="1">
-            <div class="plan-name">专业版</div>
-            <div class="plan-price">¥1 <span>/ 月</span></div>
-            <div class="plan-desc">适合小型团队，包含高级功能</div>
+        <!-- 错误状态 -->
+        <div id="errorState" class="error-state hidden">
+            <div class="error-icon">⚠️</div>
+            <h3>加载失败</h3>
+            <p id="errorMessage">无法获取支付信息，请稍后重试</p>
+            <button class="retry-button" onclick="location.reload()">重新加载</button>
         </div>
 
-        <div class="plan" data-plan="enterprise" data-amount="1">
-            <div class="plan-name">企业版</div>
-            <div class="plan-price">¥1 <span>/ 月</span></div>
-            <div class="plan-desc">适合大型企业，包含全部功能</div>
+        <!-- 已支付状态 -->
+        <div id="paidState" class="paid-state hidden">
+            <div class="paid-icon">✓</div>
+            <h3>支付成功！</h3>
+            <p>欢迎加入 Q-core 2026，你的创造之旅即将开始</p>
+            <a href="https://camp26.asp.cool" class="back-button">
+                <span>←</span>
+                <span>返回营地首页</span>
+            </a>
         </div>
 
-        <button class="pay-btn" id="payBtn">立即支付</button>
-        <div id="message"></div>
-    </div>
+        <!-- 主要内容 -->
+        <div id="mainContent" class="content-grid hidden">
+            <!-- 左侧：课程介绍 -->
+            <div class="course-section">
+                <!-- 课程概览 -->
+                <div class="card animate-in">
+                    <div class="card-header">
+                        <div class="card-icon blue">🎯</div>
+                        <div>
+                            <h2 class="card-title">Q-core 2026 · AI叠加态探索营</h2>
+                            <p class="card-subtitle">7天沉浸式创造体验 · 从叠加态到确定态</p>
+                        </div>
+                    </div>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">🔥</div>
+                            <div class="feature-text">
+                                <h4>4天加速器</h4>
+                                <p>高强度技能训练，掌握AI工具与设计思维</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">⚡</div>
+                            <div class="feature-text">
+                                <h4>3天黑客松</h4>
+                                <p>真实项目开发，从0到1完成AI产品</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">👥</div>
+                            <div class="feature-text">
+                                <h4>名校导师</h4>
+                                <p>清华、帝国理工、港大等名校背景导师指导</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🏆</div>
+                            <div class="feature-text">
+                                <h4>完整产出</h4>
+                                <p>可演示的AI产品Demo + 路演PPT + 荣誉证书</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 课程模块 -->
+                <div class="card animate-in delay-1">
+                    <div class="card-header">
+                        <div class="card-icon cyan">📚</div>
+                        <div>
+                            <h2 class="card-title">三大课程模块</h2>
+                            <p class="card-subtitle">覆盖设计、编程、产品全链路</p>
+                        </div>
+                    </div>
+                    <div class="module-grid">
+                        <div class="module-card">
+                            <div class="module-number">01</div>
+                            <h3 class="module-title">态籽 Q-seed</h3>
+                            <p class="module-desc">AI创意设计师方向，学习AI绘画、角色设计、动画制作</p>
+                        </div>
+                        <div class="module-card">
+                            <div class="module-number">02</div>
+                            <h3 class="module-title">态核 Q-core</h3>
+                            <p class="module-desc">AI逻辑小极客方向，学习编程思维、游戏开发、产品原型</p>
+                        </div>
+                        <div class="module-card">
+                            <div class="module-number">03</div>
+                            <h3 class="module-title">态链 Q-link</h3>
+                            <p class="module-desc">高阶项目实战，完整产品从构思到落地的全过程</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 包含服务 -->
+                <div class="card animate-in delay-2">
+                    <div class="card-header">
+                        <div class="card-icon orange">✨</div>
+                        <div>
+                            <h2 class="card-title">费用包含</h2>
+                            <p class="card-subtitle">一价全包，无隐形消费</p>
+                        </div>
+                    </div>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">🏨</div>
+                            <div class="feature-text">
+                                <h4>7天6晚住宿</h4>
+                                <p>高品质酒店标准间</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🍽️</div>
+                            <div class="feature-text">
+                                <h4>全程餐饮</h4>
+                                <p>营养三餐 + 下午茶歇</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🛡️</div>
+                            <div class="feature-text">
+                                <h4>保险保障</h4>
+                                <p>意外伤害险 + 医疗险</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">📸</div>
+                            <div class="feature-text">
+                                <h4>影像记录</h4>
+                                <p>专业摄影师全程跟拍</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🎓</div>
+                            <div class="feature-text">
+                                <h4>会员权益</h4>
+                                <p>Q-core会员资格 + 持续支持</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">✈️</div>
+                            <div class="feature-text">
+                                <h4>交通补贴</h4>
+                                <p>西南地区最高¥1,500补贴</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：支付面板 -->
+            <aside class="payment-sidebar">
+                <div class="payment-card animate-in delay-3">
+                    <div class="payment-header">
+                        <div class="payment-label">选择你的档位</div>
+                        <div class="payment-amount">
+                            ¥<span id="selectedPrice">--</span>
+                            <span class="payment-original" id="originalPrice"></span>
+                        </div>
+                    </div>
+
+                    <!-- 档位列表 -->
+                    <div class="tier-list" id="tierList">
+                        <div class="loading-state">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+
+                    <!-- 支付按钮 -->
+                    <button class="pay-button" id="payButton" disabled>
+                        <span>确认支付</span>
+                    </button>
+
+                    <div class="security-note">
+                        <span>🔒</span>
+                        <span>支付宝安全支付保障</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="https://asp.cool">ASP.cool 官网</a>
+                <a href="https://camp26.asp.cool">探索营首页</a>
+                <a href="mailto:apply@asp.cool">联系我们</a>
+            </div>
+            <p>© 2026 ASP.cool All Rights Reserved | 蜀ICP备2026022025号</p>
+        </footer>
+    </main>
 
     <script>
-        // 配置 - API 后端地址
-        const CONFIG = {
-            apiBase: 'https://api.asp.cool'
+        // 全局状态
+        const state = {
+            token: null,
+            appId: null,
+            user: null,
+            application: null,
+            tiers: [],
+            selectedTier: null,
+            loading: true
         };
 
-        // 选择套餐
-        document.querySelectorAll('.plan').forEach(plan => {
-            plan.addEventListener('click', function() {
-                document.querySelectorAll('.plan').forEach(p => p.classList.remove('selected'));
-                this.classList.add('selected');
-            });
-        });
-
-        // 生成订单号
-        function generateOrderId() {
-            return 'ORDER_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        // 获取 URL 参数
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                token: params.get('token'),
+                app_id: params.get('app_id')
+            };
         }
 
-        // 支付按钮
-        document.getElementById('payBtn').addEventListener('click', async function() {
-            const selected = document.querySelector('.plan.selected');
-            const plan = selected.dataset.plan;
-            const amount = selected.dataset.amount;
+        // 初始化页面
+        async function init() {
+            const { token, app_id } = getUrlParams();
+            
+            if (!token || !app_id) {
+                showError('缺少必要的参数，请从邮件中的链接进入');
+                return;
+            }
 
-            const btn = this;
-            const msgDiv = document.getElementById('message');
-
-            btn.disabled = true;
-            btn.textContent = '正在创建订单...';
-            msgDiv.innerHTML = '';
+            state.token = token;
+            state.appId = app_id;
 
             try {
-                const response = await fetch(`${CONFIG.apiBase}/api/alipay/pay`, {
+                // 加载支付页面数据
+                const response = await fetch(`/api/payments/page-init?token=${token}&app_id=${app_id}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    showError(result.error || '加载失败');
+                    return;
+                }
+
+                const { user, application, availableTiers, alreadyPaid } = result.data;
+
+                // 如果已支付
+                if (alreadyPaid) {
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('paidState').classList.remove('hidden');
+                    return;
+                }
+
+                state.user = user;
+                state.application = application;
+                state.tiers = availableTiers;
+
+                // 更新 UI
+                updateUserInfo(user);
+                renderTiers(availableTiers);
+
+                // 显示主内容
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('初始化失败:', error);
+                showError('网络错误，请检查连接后重试');
+            }
+        }
+
+        // 更新用户信息
+        function updateUserInfo(user) {
+            const userInfo = document.getElementById('userInfo');
+            const initial = user.name ? user.name[0].toUpperCase() : user.email[0].toUpperCase();
+            userInfo.innerHTML = `
+                <span>${user.name || user.email}</span>
+                <div class="user-avatar">${initial}</div>
+            `;
+        }
+
+        // 渲染档位列表
+        function renderTiers(tiers) {
+            const tierList = document.getElementById('tierList');
+            
+            if (tiers.length === 0) {
+                tierList.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">暂无可用档位</p>';
+                return;
+            }
+
+            // 默认选择第一个可用档位
+            const firstAvailable = tiers.find(t => t.available) || tiers[0];
+            state.selectedTier = firstAvailable;
+            updateSelectedPrice(firstAvailable);
+
+            tierList.innerHTML = tiers.map((tier, index) => {
+                const isSelected = tier.tier === firstAvailable.tier;
+                const isDisabled = !tier.available;
+                const discount = tier.tier === 'early_bird' ? '早鸟' : 
+                                tier.tier === 'second_batch' ? '第二批' :
+                                tier.tier === 'third_batch' ? '第三批' : '';
+                
+                return `
+                    <div class="tier-option ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}" 
+                         data-tier="${tier.tier}"
+                         onclick="${isDisabled ? '' : `selectTier('${tier.tier}')`}">
+                        <div class="tier-radio"></div>
+                        <div class="tier-info">
+                            <div class="tier-name">
+                                ${tier.name}
+                                ${discount ? `<span class="tier-badge">${discount}</span>` : ''}
+                            </div>
+                            <div class="tier-remaining">
+                                ${tier.remaining > 0 ? `剩余 ${tier.remaining} 个名额` : '已满'}
+                            </div>
+                        </div>
+                        <div class="tier-price">
+                            <div class="tier-amount">¥${tier.amount.toLocaleString()}</div>
+                            ${tier.tier !== 'regular' ? '<div class="tier-original">¥15,800</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 启用支付按钮
+            document.getElementById('payButton').disabled = false;
+        }
+
+        // 选择档位
+        function selectTier(tierName) {
+            const tier = state.tiers.find(t => t.tier === tierName);
+            if (!tier || !tier.available) return;
+
+            state.selectedTier = tier;
+            updateSelectedPrice(tier);
+
+            // 更新 UI
+            document.querySelectorAll('.tier-option').forEach(el => {
+                el.classList.toggle('selected', el.dataset.tier === tierName);
+            });
+        }
+
+        // 更新选中价格
+        function updateSelectedPrice(tier) {
+            document.getElementById('selectedPrice').textContent = tier.amount.toLocaleString();
+            const originalPrice = document.getElementById('originalPrice');
+            if (tier.tier !== 'regular') {
+                originalPrice.textContent = '¥15,800';
+            } else {
+                originalPrice.textContent = '';
+            }
+        }
+
+        // 显示错误
+        function showError(message) {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // 支付按钮点击
+        document.getElementById('payButton').addEventListener('click', async () => {
+            if (!state.selectedTier) return;
+
+            const button = document.getElementById('payButton');
+            button.disabled = true;
+            button.classList.add('loading');
+            button.innerHTML = '<div class="spinner"></div><span>正在创建订单...</span>';
+
+            try {
+                const response = await fetch('/api/payments/create', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        orderId: generateOrderId(),
-                        plan: plan,
-                        billing: 'monthly',
-                        amount: parseFloat(amount)
+                        token: state.token,
+                        application_id: state.appId,
+                        tier: state.selectedTier.tier
                     })
                 });
 
-                const data = await response.json();
+                const result = await response.json();
 
-                if (data.formHtml) {
-                    msgDiv.innerHTML = '<div class="success">订单创建成功，正在跳转到支付宝...</div>';
-                    const container = document.createElement('div');
-                    container.style.display = 'none';
-                    container.innerHTML = data.formHtml;
-                    document.body.appendChild(container);
-                    const form = container.querySelector('form');
-                    if (!form) {
-                        throw new Error('支付宝支付表单生成失败');
-                    }
+                if (!result.success) {
+                    alert(result.error || '创建订单失败');
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                    button.innerHTML = '<span>确认支付</span>';
+                    return;
+                }
+
+                // 插入支付宝表单并提交
+                const container = document.createElement('div');
+                container.innerHTML = result.data.payUrl;
+                document.body.appendChild(container);
+                
+                // 自动提交表单
+                const form = container.querySelector('form');
+                if (form) {
                     form.submit();
                 } else {
-                    throw new Error(data.error || '创建订单失败');
+                    alert('支付表单加载失败，请重试');
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                    button.innerHTML = '<span>确认支付</span>';
                 }
+
             } catch (error) {
-                msgDiv.innerHTML = '<div class="error">支付发起失败: ' + error.message + '</div>';
-                btn.disabled = false;
-                btn.textContent = '立即支付';
+                console.error('支付失败:', error);
+                alert('网络错误，请重试');
+                button.disabled = false;
+                button.classList.remove('loading');
+                button.innerHTML = '<span>确认支付</span>';
             }
         });
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
