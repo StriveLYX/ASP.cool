@@ -109,8 +109,8 @@ const ALIPAY_CONFIG = {
         ? 'http://localhost:3000/api/alipay/notify'
         : 'https://api.asp.cool/api/alipay/notify',
     returnUrl: isSandbox
-        ? 'http://localhost:3000/payment/result'
-        : 'https://apply.asp.cool/payment/result',
+        ? 'http://localhost:3000/payment-result.html'
+        : 'https://api.asp.cool/payment-result.html',
 };
 
 let alipaySdk;

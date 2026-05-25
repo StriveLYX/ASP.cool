@@ -1151,6 +1151,23 @@
         </div>
     </div>
 
+    <!-- 我的订单弹窗 -->
+    <div class="modal-overlay" id="ordersModal">
+        <div class="modal" style="position: relative; max-width: 560px;">
+            <button class="modal-close" id="closeOrdersBtn">&times;</button>
+            <div class="modal-header">
+                <h2>我的订单</h2>
+                <p>查看支付记录</p>
+            </div>
+            <div id="ordersContent">
+                <div style="text-align:center;padding:2rem;color:var(--text-secondary);">
+                    <div class="spinner" style="margin:0 auto 1rem;"></div>
+                    加载中...
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 支付等待遮罩层 -->
     <div class="payment-overlay" id="paymentOverlay">
         <div class="payment-waiting-card">
@@ -1589,6 +1606,95 @@
         // 页面加载时恢复登录状态
         updateLoginUI();
 
+        // ==========================================
+        // 我的订单弹窗
+        // ==========================================
+        const ordersModal = document.getElementById('ordersModal');
+        const ordersContent = document.getElementById('ordersContent');
+
+        document.getElementById('myOrdersBtn').addEventListener('click', () => {
+            userDropdown.classList.remove('active');
+            ordersModal.classList.add('active');
+            loadOrders();
+        });
+
+        document.getElementById('closeOrdersBtn').addEventListener('click', () => {
+            ordersModal.classList.remove('active');
+        });
+
+        ordersModal.addEventListener('click', (e) => {
+            if (e.target === ordersModal) ordersModal.classList.remove('active');
+        });
+
+        const tierNameMap = {
+            'early_bird': '早鸟价',
+            'second_batch': '第二批',
+            'third_batch': '第三批',
+            'regular': '原价'
+        };
+
+        const statusMap = {
+            'pending': { text: '待支付', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+            'paid': { text: '已支付', color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
+            'closed': { text: '已关闭', color: '#64748b', bg: 'rgba(100,116,139,0.1)' },
+        };
+
+        async function loadOrders() {
+            if (!state.token) {
+                ordersContent.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-secondary);">请先登录</div>';
+                return;
+            }
+
+            ordersContent.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-secondary);"><div class="spinner" style="margin:0 auto 1rem;"></div>加载中...</div>';
+
+            try {
+                const resp = await fetch(`${CONFIG.apiBase}/api/auth/me`, {
+                    headers: { 'Authorization': 'Bearer ' + state.token }
+                });
+                const result = await resp.json();
+
+                if (result.success && result.data && result.data.payments && result.data.payments.length > 0) {
+                    let html = '<div style="display:flex;flex-direction:column;gap:0.75rem;">';
+                    result.data.payments.forEach(p => {
+                        const s = statusMap[p.status] || statusMap['pending'];
+                        const tierName = tierNameMap[p.tier] || p.tier || '-';
+                        html += `
+                            <div style="padding:1rem;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                                    <span style="font-weight:600;">${tierName}</span>
+                                    <span style="padding:0.2rem 0.6rem;border-radius:20px;font-size:0.8rem;font-weight:600;background:${s.bg};color:${s.color};">${s.text}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--text-secondary);">
+                                    <span>¥${parseFloat(p.amount).toFixed(2)}</span>
+                                    <span>${p.created_at ? new Date(p.created_at).toLocaleString('zh-CN') : '-'}</span>
+                                </div>
+                                ${p.paid_at ? `<div style="font-size:0.8rem;color:var(--success);margin-top:0.3rem;">支付时间: ${new Date(p.paid_at).toLocaleString('zh-CN')}</div>` : ''}
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    ordersContent.innerHTML = html;
+                } else {
+                    ordersContent.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-secondary);">暂无订单记录</div>';
+                }
+            } catch (err) {
+                ordersContent.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--error);">加载失败，请重试</div>';
+            }
+        }
+
+        // ==========================================
+        // 监听支付宝支付完成消息（从 payment-result.html 发来）
+        // ==========================================
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'alipay_payment_result') {
+                console.log('收到支付完成通知:', event.data);
+                if (event.data.success && state.currentOrderId) {
+                    // 立即查询一次确认
+                    pollPaymentResult(state.currentOrderId);
+                }
+            }
+        });
+
         // 选择档位
         document.querySelectorAll('.tier-option').forEach(option => {
             option.addEventListener('click', function() {
@@ -1636,14 +1742,6 @@
         const waitingState = document.getElementById('waitingState');
         const successState = document.getElementById('successState');
         const failedState = document.getElementById('failedState');
-
-        // 档位名称映射
-        const tierNameMap = {
-            'early_bird': '早鸟价',
-            'second_batch': '第二批',
-            'third_batch': '第三批',
-            'regular': '原价'
-        };
 
         // 显示遮罩层 - 等待状态
         function showPaymentOverlay(orderId, amount, tier) {
