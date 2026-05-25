@@ -1,5 +1,5 @@
 /**
- * ASP.Cool 支付后端服务
+ * ASP.Cool 支付后端服务(简单测试版)
  * 支付宝电脑网站支付 (alipay.trade.page.pay)
  *
  * 使用前请先完成以下配置：
