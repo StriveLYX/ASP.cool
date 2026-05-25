@@ -569,6 +569,46 @@ app.get('/api/health', (req, res) => {
 });
 
 // ==========================================
+// API: 兼容旧版支付接口
+// POST /api/alipay/pay
+// ==========================================
+app.post('/api/alipay/pay', async (req, res) => {
+    console.log('📦 收到支付请求:', req.body);
+    
+    const { orderId, plan, billing, amount } = req.body;
+    
+    if (!orderId || !amount) {
+        return res.status(400).json({ error: '缺少必要参数: orderId, amount' });
+    }
+    
+    try {
+        // 直接调用支付宝创建支付
+        const subject = `ASP.cool ${plan === 'early_bird' ? '早鸟价' : 
+                        plan === 'second_batch' ? '第二批' :
+                        plan === 'third_batch' ? '第三批' : '原价'}`;
+        
+        const result = await alipaySdk.pageExec('alipay.trade.page.pay', {
+            notifyUrl: ALIPAY_CONFIG.notifyUrl,
+            returnUrl: ALIPAY_CONFIG.returnUrl,
+            bizContent: {
+                out_trade_no: orderId,
+                product_code: 'FAST_INSTANT_TRADE_PAY',
+                total_amount: parseFloat(amount).toFixed(2),
+                subject: subject,
+                body: 'Q-core 2026 课程报名',
+            },
+        });
+        
+        console.log('✅ 支付宝表单生成成功');
+        res.json({ formHtml: result });
+        
+    } catch (err) {
+        console.error('❌ 创建支付订单失败:', err.message);
+        res.status(500).json({ error: '创建支付订单失败: ' + err.message });
+    }
+});
+
+// ==========================================
 // 静态文件服务
 // ==========================================
 app.use(express.static(path.join(__dirname, 'public')));
