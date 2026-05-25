@@ -569,6 +569,113 @@ app.get('/api/health', (req, res) => {
 });
 
 // ==========================================
+// API: 用户登录
+// POST /api/auth/login
+// ==========================================
+app.post('/api/auth/login', async (req, res) => {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+        return res.status(400).json({ success: false, error: '请输入邮箱和密码' });
+    }
+    
+    try {
+        const result = await query(
+            'SELECT id, email, name, password_hash, created_at FROM users WHERE email = $1',
+            [email]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(401).json({ success: false, error: '邮箱或密码错误' });
+        }
+        
+        const user = result.rows[0];
+        
+        // 密码验证（支持 bcrypt 和明文，兼容 camp2026 的加密方式）
+        const bcrypt = require('bcryptjs');
+        let passwordValid = false;
+        
+        if (user.password_hash && user.password_hash.startsWith('$2')) {
+            // bcrypt 加密
+            passwordValid = await bcrypt.compare(password, user.password_hash);
+        } else if (user.password_hash) {
+            // 明文或简单加密（开发环境）
+            passwordValid = (password === user.password_hash);
+        }
+        
+        if (!passwordValid) {
+            return res.status(401).json({ success: false, error: '邮箱或密码错误' });
+        }
+        
+        // 生成 JWT Token
+        const token = jwt.sign(
+            { userId: user.id, email: user.email, name: user.name },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        console.log('✅ 用户登录成功:', user.email);
+        
+        res.json({
+            success: true,
+            data: {
+                token: token,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                }
+            }
+        });
+        
+    } catch (err) {
+        console.error('登录失败:', err.message);
+        res.status(500).json({ success: false, error: '登录失败' });
+    }
+});
+
+// ==========================================
+// API: 获取当前用户信息
+// GET /api/auth/me
+// ==========================================
+app.get('/api/auth/me', verifyToken, async (req, res) => {
+    try {
+        const result = await query(
+            'SELECT id, email, name, created_at FROM users WHERE id = $1',
+            [req.user.userId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: '用户不存在' });
+        }
+        
+        const user = result.rows[0];
+        
+        // 查询用户的支付记录
+        const payments = await query(
+            'SELECT id, tier, amount, status, created_at FROM qcore_payments WHERE user_id = $1 ORDER BY created_at DESC',
+            [user.id]
+        );
+        
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                },
+                payments: payments.rows
+            }
+        });
+        
+    } catch (err) {
+        console.error('获取用户信息失败:', err.message);
+        res.status(500).json({ success: false, error: '获取用户信息失败' });
+    }
+});
+
+// ==========================================
 // API: 兼容旧版支付接口
 // POST /api/alipay/pay
 // ==========================================

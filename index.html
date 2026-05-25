@@ -164,6 +164,219 @@
             box-shadow: var(--shadow-glow);
         }
 
+        /* 登录弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 420px;
+            max-width: 90vw;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .modal-error {
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .modal-submit {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .modal-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .modal-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* 用户下拉菜单 */
+        .user-menu {
+            position: relative;
+        }
+
+        .user-menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.5rem;
+            min-width: 180px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s;
+            z-index: 150;
+        }
+
+        .user-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .user-dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .user-dropdown-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
         /* 主容器 */
         .main-container {
             position: relative;
@@ -638,12 +851,49 @@
                 <span class="logo-text">ASP.cool</span>
             </a>
             <div class="user-info" id="userInfo">
-                <span id="userName">访客用户</span>
-                <a href="https://camp2026.asp.cool/login?redirect=https://apply.asp.cool" class="login-btn" id="loginBtn">登录</a>
-                <div class="user-avatar hidden" id="userAvatar">G</div>
+                <!-- 未登录状态 -->
+                <div id="guestView">
+                    <button class="login-btn" id="openLoginBtn">登录</button>
+                </div>
+                <!-- 已登录状态 -->
+                <div class="user-menu hidden" id="loggedInView">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <span id="userName">用户</span>
+                        <div class="user-avatar" id="userAvatar">G</div>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <button class="user-dropdown-item" id="myOrdersBtn">📋 我的订单</button>
+                        <button class="user-dropdown-item danger" id="logoutBtn">🚪 退出登录</button>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
+
+    <!-- 登录弹窗 -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal" style="position: relative;">
+            <button class="modal-close" id="closeLoginBtn">&times;</button>
+            <div class="modal-header">
+                <h2>登录 ASP.cool</h2>
+                <p>使用 camp2026 账号登录</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">邮箱</label>
+                    <input type="email" id="loginEmail" placeholder="请输入邮箱" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required autocomplete="current-password">
+                </div>
+                <div id="loginError" class="modal-error hidden"></div>
+                <button type="submit" class="modal-submit" id="loginSubmitBtn">
+                    <span>登录</span>
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- 主内容 -->
     <main class="main-container">
@@ -889,37 +1139,122 @@
         // 全局状态
         const state = {
             selectedTier: 'early_bird',
-            selectedAmount: 9800
+            selectedAmount: 9800,
+            token: localStorage.getItem('qcore_token') || null,
+            user: JSON.parse(localStorage.getItem('qcore_user') || 'null')
         };
 
-        // 检查登录状态
-        function checkLoginStatus() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
+        // ==========================================
+        // 登录弹窗控制
+        // ==========================================
+        const loginModal = document.getElementById('loginModal');
+        const openLoginBtn = document.getElementById('openLoginBtn');
+        const closeLoginBtn = document.getElementById('closeLoginBtn');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+
+        openLoginBtn.addEventListener('click', () => loginModal.classList.add('active'));
+        closeLoginBtn.addEventListener('click', () => {
+            loginModal.classList.remove('active');
+            loginError.classList.add('hidden');
+        });
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.remove('active');
+                loginError.classList.add('hidden');
+            }
+        });
+
+        // 登录表单提交
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
             
-            if (token) {
-                // 已登录，隐藏登录按钮，显示用户信息
-                document.getElementById('loginBtn').classList.add('hidden');
-                document.getElementById('userAvatar').classList.remove('hidden');
-                document.getElementById('userName').textContent = '已登录用户';
+            loginSubmitBtn.disabled = true;
+            loginSubmitBtn.innerHTML = '<div class="spinner"></div><span>登录中...</span>';
+            loginError.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${CONFIG.apiBase}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
                 
-                // 尝试获取用户信息
-                fetch(`${CONFIG.apiBase}/api/auth/verify?token=${token}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success && data.data.user) {
-                            const user = data.data.user;
-                            document.getElementById('userName').textContent = user.name || user.email;
-                            document.getElementById('userAvatar').textContent = 
-                                (user.name || user.email)[0].toUpperCase();
-                        }
-                    })
-                    .catch(err => console.log('获取用户信息失败:', err));
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 保存登录状态
+                    state.token = result.data.token;
+                    state.user = result.data.user;
+                    localStorage.setItem('qcore_token', result.data.token);
+                    localStorage.setItem('qcore_user', JSON.stringify(result.data.user));
+                    
+                    // 更新 UI
+                    updateLoginUI();
+                    loginModal.classList.remove('active');
+                    loginForm.reset();
+                } else {
+                    loginError.textContent = result.error || '登录失败';
+                    loginError.classList.remove('hidden');
+                }
+            } catch (error) {
+                loginError.textContent = '网络错误，请重试';
+                loginError.classList.remove('hidden');
+            }
+            
+            loginSubmitBtn.disabled = false;
+            loginSubmitBtn.innerHTML = '<span>登录</span>';
+        });
+
+        // ==========================================
+        // 用户菜单
+        // ==========================================
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+
+        userMenuBtn.addEventListener('click', () => {
+            userDropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-menu')) {
+                userDropdown.classList.remove('active');
+            }
+        });
+
+        // 退出登录
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            state.token = null;
+            state.user = null;
+            localStorage.removeItem('qcore_token');
+            localStorage.removeItem('qcore_user');
+            updateLoginUI();
+            userDropdown.classList.remove('active');
+        });
+
+        // ==========================================
+        // 更新登录状态 UI
+        // ==========================================
+        function updateLoginUI() {
+            const guestView = document.getElementById('guestView');
+            const loggedInView = document.getElementById('loggedInView');
+            
+            if (state.token && state.user) {
+                guestView.classList.add('hidden');
+                loggedInView.classList.remove('hidden');
+                document.getElementById('userName').textContent = state.user.name || state.user.email;
+                document.getElementById('userAvatar').textContent = (state.user.name || state.user.email)[0].toUpperCase();
+            } else {
+                guestView.classList.remove('hidden');
+                loggedInView.classList.add('hidden');
             }
         }
 
-        // 页面加载时检查登录状态
-        checkLoginStatus();
+        // 页面加载时恢复登录状态
+        updateLoginUI();
 
         // 选择档位
         document.querySelectorAll('.tier-option').forEach(option => {
