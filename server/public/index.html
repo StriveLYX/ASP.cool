@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q-core 2026 支付 - ASP.cool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-light: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+            --gradient-2: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* 背景动画 */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.1) 0%, transparent 40%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(1deg); }
+            66% { transform: translate(-20px, 20px) rotate(-1deg); }
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .login-btn {
+            padding: 0.5rem 1.25rem;
+            background: var(--gradient-1);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* 登录弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 420px;
+            max-width: 90vw;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .modal-error {
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .modal-submit {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .modal-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .modal-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* 用户下拉菜单 */
+        .user-menu {
+            position: relative;
+        }
+
+        .user-menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.5rem;
+            min-width: 180px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s;
+            z-index: 150;
+        }
+
+        .user-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .user-dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .user-dropdown-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        /* 主容器 */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 100px 2rem 4rem;
+        }
+
+        /* 页面标题 */
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* 内容网格 */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 课程介绍卡片 */
+        .course-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .card-icon.blue { background: rgba(99, 102, 241, 0.2); }
+        .card-icon.cyan { background: rgba(6, 182, 212, 0.2); }
+        .card-icon.orange { background: rgba(245, 158, 11, 0.2); }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* 课程特色 */
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .feature-item:hover {
+            border-color: var(--border);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--gradient-1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .feature-text h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .feature-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* 课程模块 */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .module-card {
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-light);
+        }
+
+        .module-number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* 支付侧边栏 */
+        .payment-sidebar {
+            position: sticky;
+            top: 100px;
+        }
+
+        .payment-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+        }
+
+        .payment-header {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .payment-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .payment-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .payment-original {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+            margin-left: 0.5rem;
+        }
+
+        /* 档位选择 */
+        .tier-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tier-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tier-option:hover {
+            border-color: var(--primary-light);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .tier-option.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .tier-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .tier-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .tier-option.selected .tier-radio {
+            border-color: var(--primary);
+            background: var(--primary);
+        }
+
+        .tier-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tier-option.selected .tier-radio::after {
+            opacity: 1;
+        }
+
+        .tier-info {
+            flex: 1;
+        }
+
+        .tier-name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tier-badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            background: var(--gradient-2);
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .tier-remaining {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .tier-price {
+            text-align: right;
+        }
+
+        .tier-amount {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .tier-original {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        /* 支付按钮 */
+        .pay-button {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .pay-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .pay-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .pay-button.loading {
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 安全提示 */
+        .security-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* 消息提示 */
+        .message-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .message-box.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--error);
+        }
+
+        .message-box.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--success);
+        }
+
+        /* 页脚 */
+        .footer {
+            margin-top: 4rem;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-light);
+        }
+
+        /* 隐藏 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 动画 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <a href="https://asp.cool" class="logo">
+                <div class="logo-icon">A</div>
+                <span class="logo-text">ASP.cool</span>
+            </a>
+            <div class="user-info" id="userInfo">
+                <!-- 未登录状态 -->
+                <div id="guestView">
+                    <button class="login-btn" id="openLoginBtn">登录</button>
+                </div>
+                <!-- 已登录状态 -->
+                <div class="user-menu hidden" id="loggedInView">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <span id="userName">用户</span>
+                        <div class="user-avatar" id="userAvatar">G</div>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <button class="user-dropdown-item" id="myOrdersBtn">📋 我的订单</button>
+                        <button class="user-dropdown-item danger" id="logoutBtn">🚪 退出登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 登录弹窗 -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal" style="position: relative;">
+            <button class="modal-close" id="closeLoginBtn">&times;</button>
+            <div class="modal-header">
+                <h2>登录 ASP.cool</h2>
+                <p>使用 camp2026 账号登录</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">邮箱</label>
+                    <input type="email" id="loginEmail" placeholder="请输入邮箱" required autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" required autocomplete="current-password">
+                </div>
+                <div id="loginError" class="modal-error hidden"></div>
+                <button type="submit" class="modal-submit" id="loginSubmitBtn">
+                    <span>登录</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <main class="main-container">
+        <!-- 页面标题 -->
+        <header class="page-header">
+            <h1>确认你的探索之旅</h1>
+            <p>完成支付，正式成为 Q-core 2026 的一员</p>
+        </header>
+
+        <!-- 主要内容 -->
+        <div class="content-grid">
+            <!-- 左侧：课程介绍 -->
+            <div class="course-section">
+                <!-- 课程概览 -->
+                <div class="card animate-in">
+                    <div class="card-header">
+                        <div class="card-icon blue">🎯</div>
+                        <div>
+                            <h2 class="card-title">Q-core 2026 · AI叠加态探索营</h2>
+                            <p class="card-subtitle">7天沉浸式创造体验 · 从叠加态到确定态</p>
+                        </div>
+                    </div>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">🔥</div>
+                            <div class="feature-text">
+                                <h4>4天加速器</h4>
+                                <p>高强度技能训练，掌握AI工具与设计思维</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">⚡</div>
+                            <div class="feature-text">
+                                <h4>3天黑客松</h4>
+                                <p>真实项目开发，从0到1完成AI产品</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">👥</div>
+                            <div class="feature-text">
+                                <h4>名校导师</h4>
+                                <p>清华、帝国理工、港大等名校背景导师指导</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🏆</div>
+                            <div class="feature-text">
+                                <h4>完整产出</h4>
+                                <p>可演示的AI产品Demo + 路演PPT + 荣誉证书</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 课程模块 -->
+                <div class="card animate-in delay-1">
+                    <div class="card-header">
+                        <div class="card-icon cyan">📚</div>
+                        <div>
+                            <h2 class="card-title">三大课程模块</h2>
+                            <p class="card-subtitle">覆盖设计、编程、产品全链路</p>
+                        </div>
+                    </div>
+                    <div class="module-grid">
+                        <div class="module-card">
+                            <div class="module-number">01</div>
+                            <h3 class="module-title">态籽 Q-seed</h3>
+                            <p class="module-desc">AI创意设计师方向，学习AI绘画、角色设计、动画制作</p>
+                        </div>
+                        <div class="module-card">
+                            <div class="module-number">02</div>
+                            <h3 class="module-title">态核 Q-core</h3>
+                            <p class="module-desc">AI逻辑小极客方向，学习编程思维、游戏开发、产品原型</p>
+                        </div>
+                        <div class="module-card">
+                            <div class="module-number">03</div>
+                            <h3 class="module-title">态链 Q-link</h3>
+                            <p class="module-desc">高阶项目实战，完整产品从构思到落地的全过程</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 包含服务 -->
+                <div class="card animate-in delay-2">
+                    <div class="card-header">
+                        <div class="card-icon orange">✨</div>
+                        <div>
+                            <h2 class="card-title">费用包含</h2>
+                            <p class="card-subtitle">一价全包，无隐形消费</p>
+                        </div>
+                    </div>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon">🏨</div>
+                            <div class="feature-text">
+                                <h4>7天6晚住宿</h4>
+                                <p>高品质酒店标准间</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🍽️</div>
+                            <div class="feature-text">
+                                <h4>全程餐饮</h4>
+                                <p>营养三餐 + 下午茶歇</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🛡️</div>
+                            <div class="feature-text">
+                                <h4>保险保障</h4>
+                                <p>意外伤害险 + 医疗险</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">📸</div>
+                            <div class="feature-text">
+                                <h4>影像记录</h4>
+                                <p>专业摄影师全程跟拍</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">🎓</div>
+                            <div class="feature-text">
+                                <h4>会员权益</h4>
+                                <p>Q-core会员资格 + 持续支持</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">✈️</div>
+                            <div class="feature-text">
+                                <h4>交通补贴</h4>
+                                <p>西南地区最高¥1,500补贴</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：支付面板 -->
+            <aside class="payment-sidebar">
+                <div class="payment-card animate-in delay-3">
+                    <div class="payment-header">
+                        <div class="payment-label">选择你的档位</div>
+                        <div class="payment-amount">
+                            ¥<span id="selectedPrice">9,800</span>
+                            <span class="payment-original" id="originalPrice">¥15,800</span>
+                        </div>
+                    </div>
+
+                    <!-- 档位列表 -->
+                    <div class="tier-list" id="tierList">
+                        <div class="tier-option selected" data-tier="early_bird" data-amount="1" data-original="9800">
+                            <div class="tier-radio"></div>
+                            <div class="tier-info">
+                                <div class="tier-name">
+                                    早鸟价
+                                    <span class="tier-badge">限前30名</span>
+                                </div>
+                                <div class="tier-remaining">剩余 30 个名额</div>
+                            </div>
+                            <div class="tier-price">
+                                <div class="tier-amount">¥1</div>
+                                <div class="tier-original">¥9,800</div>
+                            </div>
+                        </div>
+
+                        <div class="tier-option" data-tier="second_batch" data-amount="1" data-original="11800">
+                            <div class="tier-radio"></div>
+                            <div class="tier-info">
+                                <div class="tier-name">
+                                    第二批
+                                    <span class="tier-badge">限前60名</span>
+                                </div>
+                                <div class="tier-remaining">剩余 60 个名额</div>
+                            </div>
+                            <div class="tier-price">
+                                <div class="tier-amount">¥1</div>
+                                <div class="tier-original">¥11,800</div>
+                            </div>
+                        </div>
+
+                        <div class="tier-option" data-tier="third_batch" data-amount="1" data-original="13800">
+                            <div class="tier-radio"></div>
+                            <div class="tier-info">
+                                <div class="tier-name">
+                                    第三批
+                                    <span class="tier-badge">限前100名</span>
+                                </div>
+                                <div class="tier-remaining">剩余 100 个名额</div>
+                            </div>
+                            <div class="tier-price">
+                                <div class="tier-amount">¥1</div>
+                                <div class="tier-original">¥13,800</div>
+                            </div>
+                        </div>
+
+                        <div class="tier-option" data-tier="regular" data-amount="1">
+                            <div class="tier-radio"></div>
+                            <div class="tier-info">
+                                <div class="tier-name">原价</div>
+                                <div class="tier-remaining">不限名额</div>
+                            </div>
+                            <div class="tier-price">
+                                <div class="tier-amount">¥1</div>
+                                <div class="tier-original">¥15,800</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 支付按钮 -->
+                    <button class="pay-button" id="payButton">
+                        <span>确认支付</span>
+                    </button>
+
+                    <!-- 消息提示 -->
+                    <div id="messageBox" class="message-box hidden"></div>
+
+                    <div class="security-note">
+                        <span>🔒</span>
+                        <span>支付宝安全支付保障</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="https://asp.cool">ASP.cool 官网</a>
+                <a href="https://camp26.asp.cool">探索营首页</a>
+                <a href="mailto:apply@asp.cool">联系我们</a>
+            </div>
+            <p>© 2026 ASP.cool All Rights Reserved | 蜀ICP备2026022025号</p>
+        </footer>
+    </main>
+
+    <script>
+        // 配置
+        const CONFIG = {
+            apiBase: 'https://api.asp.cool'
+        };
+
+        // 全局状态
+        const state = {
+            selectedTier: 'early_bird',
+            selectedAmount: 9800,
+            token: localStorage.getItem('qcore_token') || null,
+            user: JSON.parse(localStorage.getItem('qcore_user') || 'null')
+        };
+
+        // ==========================================
+        // 登录弹窗控制
+        // ==========================================
+        const loginModal = document.getElementById('loginModal');
+        const openLoginBtn = document.getElementById('openLoginBtn');
+        const closeLoginBtn = document.getElementById('closeLoginBtn');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+
+        openLoginBtn.addEventListener('click', () => loginModal.classList.add('active'));
+        closeLoginBtn.addEventListener('click', () => {
+            loginModal.classList.remove('active');
+            loginError.classList.add('hidden');
+        });
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.remove('active');
+                loginError.classList.add('hidden');
+            }
+        });
+
+        // 登录表单提交
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            loginSubmitBtn.disabled = true;
+            loginSubmitBtn.innerHTML = '<div class="spinner"></div><span>登录中...</span>';
+            loginError.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${CONFIG.apiBase}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 保存登录状态
+                    state.token = result.data.token;
+                    state.user = result.data.user;
+                    localStorage.setItem('qcore_token', result.data.token);
+                    localStorage.setItem('qcore_user', JSON.stringify(result.data.user));
+                    
+                    // 更新 UI
+                    updateLoginUI();
+                    loginModal.classList.remove('active');
+                    loginForm.reset();
+                } else {
+                    loginError.textContent = result.error || '登录失败';
+                    loginError.classList.remove('hidden');
+                }
+            } catch (error) {
+                loginError.textContent = '网络错误，请重试';
+                loginError.classList.remove('hidden');
+            }
+            
+            loginSubmitBtn.disabled = false;
+            loginSubmitBtn.innerHTML = '<span>登录</span>';
+        });
+
+        // ==========================================
+        // 用户菜单
+        // ==========================================
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+
+        userMenuBtn.addEventListener('click', () => {
+            userDropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-menu')) {
+                userDropdown.classList.remove('active');
+            }
+        });
+
+        // 退出登录
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            state.token = null;
+            state.user = null;
+            localStorage.removeItem('qcore_token');
+            localStorage.removeItem('qcore_user');
+            updateLoginUI();
+            userDropdown.classList.remove('active');
+        });
+
+        // ==========================================
+        // 更新登录状态 UI
+        // ==========================================
+        function updateLoginUI() {
+            const guestView = document.getElementById('guestView');
+            const loggedInView = document.getElementById('loggedInView');
+            
+            if (state.token && state.user) {
+                guestView.classList.add('hidden');
+                loggedInView.classList.remove('hidden');
+                document.getElementById('userName').textContent = state.user.name || state.user.email;
+                document.getElementById('userAvatar').textContent = (state.user.name || state.user.email)[0].toUpperCase();
+            } else {
+                guestView.classList.remove('hidden');
+                loggedInView.classList.add('hidden');
+            }
+        }
+
+        // 页面加载时恢复登录状态
+        updateLoginUI();
+
+        // 选择档位
+        document.querySelectorAll('.tier-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // 移除其他选中状态
+                document.querySelectorAll('.tier-option').forEach(o => o.classList.remove('selected'));
+                // 添加当前选中状态
+                this.classList.add('selected');
+
+                // 更新状态
+                state.selectedTier = this.dataset.tier;
+                state.selectedAmount = parseInt(this.dataset.amount);
+
+                // 更新价格显示
+                document.getElementById('selectedPrice').textContent = state.selectedAmount.toLocaleString();
+                
+                // 更新原价显示
+                const originalPrice = document.getElementById('originalPrice');
+                const selectedOption = document.querySelector(`.tier-option[data-tier="${tierName}"]`);
+                const originalAmount = selectedOption ? selectedOption.dataset.original : '';
+                
+                if (originalAmount) {
+                    originalPrice.textContent = '¥' + parseInt(originalAmount).toLocaleString();
+                } else {
+                    originalPrice.textContent = '';
+                }
+            });
+        });
+
+        // 生成订单号
+        function generateOrderId() {
+            return 'QC' + Date.now() + '_' + Math.random().toString(36).substr(2, 5).toUpperCase();
+        }
+
+        // 显示消息
+        function showMessage(text, type) {
+            const box = document.getElementById('messageBox');
+            box.textContent = text;
+            box.className = 'message-box ' + type;
+            box.classList.remove('hidden');
+        }
+
+        // 隐藏消息
+        function hideMessage() {
+            document.getElementById('messageBox').classList.add('hidden');
+        }
+
+        // 支付按钮点击
+        document.getElementById('payButton').addEventListener('click', async function() {
+            const button = this;
+            
+            button.disabled = true;
+            button.classList.add('loading');
+            button.innerHTML = '<div class="spinner"></div><span>正在创建订单...</span>';
+            hideMessage();
+
+            try {
+                const orderId = generateOrderId();
+                
+                const response = await fetch(`${CONFIG.apiBase}/api/alipay/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        plan: state.selectedTier,
+                        billing: 'full',
+                        amount: state.selectedAmount
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.formHtml) {
+                    // 跳转到支付等待页面，带上订单信息
+                    const waitingUrl = `/payment-waiting.html?order_id=${orderId}&tier=${state.selectedTier}&amount=${state.selectedAmount}`;
+                    window.location.href = waitingUrl;
+                } else {
+                    throw new Error(data.error || '创建订单失败');
+                }
+
+            } catch (error) {
+                console.error('支付失败:', error);
+                showMessage('支付发起失败: ' + error.message, 'error');
+                button.disabled = false;
+                button.classList.remove('loading');
+                button.innerHTML = '<span>确认支付</span>';
+            }
+        });
+    </script>
+</body>
+</html>
