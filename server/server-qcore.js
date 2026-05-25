@@ -582,10 +582,30 @@ app.post('/api/alipay/pay', async (req, res) => {
     }
     
     try {
-        // 直接调用支付宝创建支付
-        const subject = `ASP.cool ${plan === 'early_bird' ? '早鸟价' : 
-                        plan === 'second_batch' ? '第二批' :
-                        plan === 'third_batch' ? '第三批' : '原价'}`;
+        // 先创建数据库订单记录
+        const tierMap = {
+            'early_bird': '早鸟价',
+            'second_batch': '第二批', 
+            'third_batch': '第三批',
+            'regular': '原价'
+        };
+        
+        // 尝试保存到数据库（如果数据库可用）
+        try {
+            await query(
+                `INSERT INTO qcore_payments 
+                (application_id, user_id, tier, amount, status, batch_number)
+                VALUES ($1, $2, $3, $4, 'pending', 1)
+                ON CONFLICT DO NOTHING`,
+                [0, 0, plan, amount]
+            );
+        } catch (dbErr) {
+            console.log('⚠️ 数据库保存失败（可能表不存在）:', dbErr.message);
+            // 继续执行，不阻塞支付流程
+        }
+        
+        // 调用支付宝创建支付
+        const subject = `ASP.cool ${tierMap[plan] || '课程报名'}`;
         
         const result = await alipaySdk.pageExec('alipay.trade.page.pay', {
             notifyUrl: ALIPAY_CONFIG.notifyUrl,

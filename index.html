@@ -146,6 +146,24 @@
             font-size: 0.9rem;
         }
 
+        .login-btn {
+            padding: 0.5rem 1.25rem;
+            background: var(--gradient-1);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-glow);
+        }
+
         /* 主容器 */
         .main-container {
             position: relative;
@@ -620,7 +638,9 @@
                 <span class="logo-text">ASP.cool</span>
             </a>
             <div class="user-info" id="userInfo">
-                <span>访客用户</span>
+                <span id="userName">访客用户</span>
+                <a href="https://camp2026.asp.cool/login?redirect=https://apply.asp.cool" class="login-btn" id="loginBtn">登录</a>
+                <div class="user-avatar hidden" id="userAvatar">G</div>
             </div>
         </div>
     </nav>
@@ -775,7 +795,7 @@
 
                     <!-- 档位列表 -->
                     <div class="tier-list" id="tierList">
-                        <div class="tier-option selected" data-tier="early_bird" data-amount="9800">
+                        <div class="tier-option selected" data-tier="early_bird" data-amount="1" data-original="9800">
                             <div class="tier-radio"></div>
                             <div class="tier-info">
                                 <div class="tier-name">
@@ -785,12 +805,12 @@
                                 <div class="tier-remaining">剩余 30 个名额</div>
                             </div>
                             <div class="tier-price">
-                                <div class="tier-amount">¥9,800</div>
-                                <div class="tier-original">¥15,800</div>
+                                <div class="tier-amount">¥1</div>
+                                <div class="tier-original">¥9,800</div>
                             </div>
                         </div>
 
-                        <div class="tier-option" data-tier="second_batch" data-amount="11800">
+                        <div class="tier-option" data-tier="second_batch" data-amount="1" data-original="11800">
                             <div class="tier-radio"></div>
                             <div class="tier-info">
                                 <div class="tier-name">
@@ -800,12 +820,12 @@
                                 <div class="tier-remaining">剩余 60 个名额</div>
                             </div>
                             <div class="tier-price">
-                                <div class="tier-amount">¥11,800</div>
-                                <div class="tier-original">¥15,800</div>
+                                <div class="tier-amount">¥1</div>
+                                <div class="tier-original">¥11,800</div>
                             </div>
                         </div>
 
-                        <div class="tier-option" data-tier="third_batch" data-amount="13800">
+                        <div class="tier-option" data-tier="third_batch" data-amount="1" data-original="13800">
                             <div class="tier-radio"></div>
                             <div class="tier-info">
                                 <div class="tier-name">
@@ -815,19 +835,20 @@
                                 <div class="tier-remaining">剩余 100 个名额</div>
                             </div>
                             <div class="tier-price">
-                                <div class="tier-amount">¥13,800</div>
-                                <div class="tier-original">¥15,800</div>
+                                <div class="tier-amount">¥1</div>
+                                <div class="tier-original">¥13,800</div>
                             </div>
                         </div>
 
-                        <div class="tier-option" data-tier="regular" data-amount="15800">
+                        <div class="tier-option" data-tier="regular" data-amount="1">
                             <div class="tier-radio"></div>
                             <div class="tier-info">
                                 <div class="tier-name">原价</div>
                                 <div class="tier-remaining">不限名额</div>
                             </div>
                             <div class="tier-price">
-                                <div class="tier-amount">¥15,800</div>
+                                <div class="tier-amount">¥1</div>
+                                <div class="tier-original">¥15,800</div>
                             </div>
                         </div>
                     </div>
@@ -871,6 +892,35 @@
             selectedAmount: 9800
         };
 
+        // 检查登录状态
+        function checkLoginStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            
+            if (token) {
+                // 已登录，隐藏登录按钮，显示用户信息
+                document.getElementById('loginBtn').classList.add('hidden');
+                document.getElementById('userAvatar').classList.remove('hidden');
+                document.getElementById('userName').textContent = '已登录用户';
+                
+                // 尝试获取用户信息
+                fetch(`${CONFIG.apiBase}/api/auth/verify?token=${token}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.data.user) {
+                            const user = data.data.user;
+                            document.getElementById('userName').textContent = user.name || user.email;
+                            document.getElementById('userAvatar').textContent = 
+                                (user.name || user.email)[0].toUpperCase();
+                        }
+                    })
+                    .catch(err => console.log('获取用户信息失败:', err));
+            }
+        }
+
+        // 页面加载时检查登录状态
+        checkLoginStatus();
+
         // 选择档位
         document.querySelectorAll('.tier-option').forEach(option => {
             option.addEventListener('click', function() {
@@ -888,10 +938,13 @@
                 
                 // 更新原价显示
                 const originalPrice = document.getElementById('originalPrice');
-                if (state.selectedTier === 'regular') {
-                    originalPrice.textContent = '';
+                const selectedOption = document.querySelector(`.tier-option[data-tier="${tierName}"]`);
+                const originalAmount = selectedOption ? selectedOption.dataset.original : '';
+                
+                if (originalAmount) {
+                    originalPrice.textContent = '¥' + parseInt(originalAmount).toLocaleString();
                 } else {
-                    originalPrice.textContent = '¥15,800';
+                    originalPrice.textContent = '';
                 }
             });
         });
@@ -940,20 +993,9 @@
                 const data = await response.json();
 
                 if (data.formHtml) {
-                    showMessage('订单创建成功，正在跳转到支付宝...', 'success');
-                    
-                    // 插入支付宝表单并提交
-                    const container = document.createElement('div');
-                    container.style.display = 'none';
-                    container.innerHTML = data.formHtml;
-                    document.body.appendChild(container);
-                    
-                    const form = container.querySelector('form');
-                    if (form) {
-                        form.submit();
-                    } else {
-                        throw new Error('支付宝支付表单生成失败');
-                    }
+                    // 跳转到支付等待页面，带上订单信息
+                    const waitingUrl = `/payment-waiting.html?order_id=${orderId}&tier=${state.selectedTier}&amount=${state.selectedAmount}`;
+                    window.location.href = waitingUrl;
                 } else {
                     throw new Error(data.error || '创建订单失败');
                 }

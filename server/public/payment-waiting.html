@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付确认 - ASP.cool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-light: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --gradient-1: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+            --gradient-2: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.1) 0%, transparent 40%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(1deg); }
+            66% { transform: translate(-20px, 20px) rotate(-1deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .logo-text {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 倒计时状态 */
+        .countdown-state .icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(99, 102, 241, 0); }
+        }
+
+        .countdown-state h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .countdown-state p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .timer {
+            font-size: 4rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 2rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer.warning {
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-1);
+            border-radius: 4px;
+            transition: width 1s linear;
+        }
+
+        .progress-fill.warning {
+            background: var(--gradient-2);
+        }
+
+        .order-info {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .order-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .order-info-row:last-child {
+            margin-bottom: 0;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .order-info-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .order-info-value {
+            font-weight: 600;
+        }
+
+        .order-info-value.amount {
+            font-size: 1.25rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cancel-btn {
+            width: 100%;
+            padding: 1rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cancel-btn:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        /* 成功状态 */
+        .success-state {
+            display: none;
+        }
+
+        .success-state .icon {
+            width: 100px;
+            height: 100px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 1.5rem;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .success-state h2 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            color: var(--success);
+        }
+
+        .success-state p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .success-details {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* 失败状态 */
+        .failed-state {
+            display: none;
+        }
+
+        .failed-state .icon {
+            width: 100px;
+            height: 100px;
+            background: var(--error);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .failed-state h2 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            color: var(--error);
+        }
+
+        .failed-state p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .retry-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* 加载动画 */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <div class="container">
+        <!-- Logo -->
+        <a href="https://asp.cool" class="logo">
+            <div class="logo-icon">A</div>
+            <span class="logo-text">ASP.cool</span>
+        </a>
+
+        <!-- 倒计时状态 -->
+        <div class="countdown-state" id="countdownState">
+            <div class="icon">⏱️</div>
+            <h2>正在等待支付...</h2>
+            <p>请在支付宝完成支付，倒计时结束后将自动检查支付结果</p>
+            
+            <div class="timer" id="timer">05:00</div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 100%"></div>
+            </div>
+
+            <div class="order-info">
+                <div class="order-info-row">
+                    <span class="order-info-label">订单号</span>
+                    <span class="order-info-value" id="orderId">--</span>
+                </div>
+                <div class="order-info-row">
+                    <span class="order-info-label">档位</span>
+                    <span class="order-info-value" id="tierName">--</span>
+                </div>
+                <div class="order-info-row">
+                    <span class="order-info-label">支付金额</span>
+                    <span class="order-info-value amount" id="amount">--</span>
+                </div>
+            </div>
+
+            <button class="cancel-btn" id="cancelBtn">取消支付</button>
+        </div>
+
+        <!-- 成功状态 -->
+        <div class="success-state" id="successState">
+            <div class="icon">✓</div>
+            <h2>支付成功！</h2>
+            <p>欢迎加入 Q-core 2026，你的创造之旅即将开始</p>
+            
+            <div class="success-details">
+                <div class="order-info-row">
+                    <span class="order-info-label">订单号</span>
+                    <span class="order-info-value" id="successOrderId">--</span>
+                </div>
+                <div class="order-info-row">
+                    <span class="order-info-label">支付金额</span>
+                    <span class="order-info-value amount" id="successAmount">--</span>
+                </div>
+                <div class="order-info-row">
+                    <span class="order-info-label">支付时间</span>
+                    <span class="order-info-value" id="paidAt">--</span>
+                </div>
+            </div>
+
+            <a href="https://camp26.asp.cool" class="back-btn">
+                <span>→</span>
+                <span>返回营地首页</span>
+            </a>
+        </div>
+
+        <!-- 失败状态 -->
+        <div class="failed-state" id="failedState">
+            <div class="icon">✕</div>
+            <h2>支付超时</h2>
+            <p>支付已超时取消，请重新发起支付</p>
+            
+            <button class="retry-btn" id="retryBtn">
+                <span>↻</span>
+                <span>重新支付</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 配置
+        const CONFIG = {
+            apiBase: 'https://api.asp.cool',
+            checkInterval: 3000,  // 每3秒检查一次支付状态
+            totalTime: 300,        // 5分钟倒计时（秒）
+        };
+
+        // 状态
+        let timeLeft = CONFIG.totalTime;
+        let checkTimer = null;
+        let countdownTimer = null;
+        let orderId = null;
+
+        // 获取 URL 参数
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                orderId: params.get('order_id'),
+                tier: params.get('tier'),
+                amount: params.get('amount')
+            };
+        }
+
+        // 格式化时间
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 更新倒计时显示
+        function updateCountdown() {
+            const timerEl = document.getElementById('timer');
+            const progressEl = document.getElementById('progressFill');
+            
+            timerEl.textContent = formatTime(timeLeft);
+            
+            const progress = (timeLeft / CONFIG.totalTime) * 100;
+            progressEl.style.width = progress + '%';
+            
+            // 最后60秒变红色
+            if (timeLeft <= 60) {
+                timerEl.classList.add('warning');
+                progressEl.classList.add('warning');
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdownTimer);
+                clearInterval(checkTimer);
+                showFailed();
+            }
+            
+            timeLeft--;
+        }
+
+        // 检查支付状态
+        async function checkPaymentStatus() {
+            if (!orderId) return;
+            
+            try {
+                const response = await fetch(`${CONFIG.apiBase}/api/payments/result?payment_id=${orderId}`);
+                const result = await response.json();
+                
+                if (result.success && result.data.status === 'paid') {
+                    clearInterval(countdownTimer);
+                    clearInterval(checkTimer);
+                    showSuccess(result.data);
+                }
+            } catch (error) {
+                console.error('检查支付状态失败:', error);
+            }
+        }
+
+        // 显示成功
+        function showSuccess(data) {
+            document.getElementById('countdownState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
+            
+            document.getElementById('successOrderId').textContent = orderId;
+            document.getElementById('successAmount').textContent = '¥' + parseFloat(data.amount).toLocaleString();
+            document.getElementById('paidAt').textContent = new Date(data.paidAt).toLocaleString('zh-CN');
+        }
+
+        // 显示失败
+        function showFailed() {
+            document.getElementById('countdownState').style.display = 'none';
+            document.getElementById('failedState').style.display = 'block';
+        }
+
+        // 提交支付宝支付
+        async function submitAlipayPayment() {
+            const { orderId: oid, tier, amount } = getUrlParams();
+            
+            if (!oid) {
+                alert('缺少订单信息');
+                window.location.href = '/';
+                return;
+            }
+            
+            orderId = oid;
+            
+            // 显示订单信息
+            document.getElementById('orderId').textContent = orderId;
+            document.getElementById('tierName').textContent = 
+                tier === 'early_bird' ? '早鸟价' :
+                tier === 'second_batch' ? '第二批' :
+                tier === 'third_batch' ? '第三批' : '原价';
+            document.getElementById('amount').textContent = '¥' + parseInt(amount).toLocaleString();
+            
+            try {
+                // 创建支付宝订单
+                const response = await fetch(`${CONFIG.apiBase}/api/alipay/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        plan: tier,
+                        billing: 'full',
+                        amount: parseInt(amount)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.formHtml) {
+                    // 在新窗口打开支付宝支付
+                    const container = document.createElement('div');
+                    container.innerHTML = data.formHtml;
+                    document.body.appendChild(container);
+                    
+                    const form = container.querySelector('form');
+                    if (form) {
+                        // 设置 target="_blank" 在新窗口打开
+                        form.setAttribute('target', '_blank');
+                        form.submit();
+                    }
+                } else {
+                    throw new Error(data.error || '创建支付宝订单失败');
+                }
+            } catch (error) {
+                console.error('创建支付订单失败:', error);
+                alert('创建支付订单失败: ' + error.message);
+            }
+            
+            // 启动倒计时
+            updateCountdown();
+            countdownTimer = setInterval(updateCountdown, 1000);
+            
+            // 启动状态检查
+            checkPaymentStatus();
+            checkTimer = setInterval(checkPaymentStatus, CONFIG.checkInterval);
+        }
+
+        // 初始化
+        function init() {
+            submitAlipayPayment();
+        }
+
+        // 取消支付
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            if (confirm('确定要取消支付吗？')) {
+                clearInterval(countdownTimer);
+                clearInterval(checkTimer);
+                window.location.href = '/';
+            }
+        });
+
+        // 重新支付
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
