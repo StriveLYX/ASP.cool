@@ -793,6 +793,46 @@
             color: var(--success);
         }
 
+        /* 申请状态横幅 */
+        .application-banner {
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .application-banner.hidden { display: none; }
+        .application-banner.status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+        .application-banner.status-approved {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+        .application-banner.status-rejected {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        .application-banner.status-paid {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+        }
+        .application-banner.status-none {
+            background: rgba(100, 116, 139, 0.1);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+            color: #94a3b8;
+        }
+
         /* 页脚 */
         .footer {
             margin-top: 4rem;
@@ -1449,6 +1489,9 @@
                         </div>
                     </div>
 
+                    <!-- 申请状态提示横幅 -->
+                    <div id="applicationBanner" class="application-banner hidden"></div>
+
                     <!-- 支付按钮 -->
                     <button class="pay-button" id="payButton">
                         <span>确认支付</span>
@@ -1495,6 +1538,9 @@
             pollTimer: null,           // 轮询定时器
             remainingSeconds: CONFIG.countdownSeconds,
             currentOrderId: null,      // 当前支付订单号
+            applicationStatus: null,   // 申请状态: null/pending/approved/rejected/paid
+            hasPaid: false,            // 是否已支付
+            applicationId: null,       // 申请记录 ID
         };
 
         // ==========================================
@@ -1546,6 +1592,8 @@
                     updateLoginUI();
                     loginModal.classList.remove('active');
                     loginForm.reset();
+                    // 登录成功后检查申请状态
+                    checkApplicationStatus();
                 } else {
                     loginError.textContent = result.error || '登录失败';
                     loginError.classList.remove('hidden');
@@ -1579,9 +1627,13 @@
         document.getElementById('logoutBtn').addEventListener('click', () => {
             state.token = null;
             state.user = null;
+            state.applicationStatus = null;
+            state.hasPaid = false;
+            state.applicationId = null;
             localStorage.removeItem('qcore_token');
             localStorage.removeItem('qcore_user');
             updateLoginUI();
+            updatePaymentUI();
             userDropdown.classList.remove('active');
         });
 
@@ -1605,6 +1657,131 @@
 
         // 页面加载时恢复登录状态
         updateLoginUI();
+        // 如果已登录，自动检查申请状态
+        if (state.token) {
+            checkApplicationStatus();
+        }
+
+        // ==========================================
+        // 检查申请状态 & 更新支付 UI
+        // ==========================================
+
+        // 申请状态文案映射
+        const applicationStatusConfig = {
+            none:      { icon: '📋', text: '您尚未提交申请，请先在 camp26.asp.cool 完成申请', cssClass: 'status-none', canPay: false },
+            pending:   { icon: '⏳', text: '您的申请正在审核中，请耐心等待', cssClass: 'status-pending', canPay: false },
+            approved:  { icon: '✅', text: '申请已通过，请选择档位完成支付', cssClass: 'status-approved', canPay: true },
+            rejected:  { icon: '❌', text: '您的申请未通过审核，无法进行支付', cssClass: 'status-rejected', canPay: false },
+            paid:      { icon: '🎉', text: '您已完成支付，无需重复支付', cssClass: 'status-paid', canPay: false },
+        };
+
+        /**
+         * 调用 /api/applications/mine 获取当前用户的申请状态
+         * 更新 state.applicationStatus / state.hasPaid / state.applicationId
+         * 然后调用 updatePaymentUI() 刷新界面
+         */
+        async function checkApplicationStatus() {
+            if (!state.token) {
+                // 未登录，重置状态
+                state.applicationStatus = null;
+                state.hasPaid = false;
+                state.applicationId = null;
+                updatePaymentUI();
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${CONFIG.apiBase}/api/applications/mine`, {
+                    headers: { 'Authorization': 'Bearer ' + state.token }
+                });
+                const result = await resp.json();
+
+                if (result.success && result.data) {
+                    const app = result.data;
+                    state.applicationId = app.id || null;
+                    state.applicationStatus = app.status || 'none';
+
+                    // 判断是否已支付：申请状态为 paid，或者通过支付记录判断
+                    if (app.status === 'paid') {
+                        state.hasPaid = true;
+                    } else {
+                        // 额外通过 /api/auth/me 的 payments 判断
+                        try {
+                            const meResp = await fetch(`${CONFIG.apiBase}/api/auth/me`, {
+                                headers: { 'Authorization': 'Bearer ' + state.token }
+                            });
+                            const meResult = await meResp.json();
+                            if (meResult.success && meResult.data && meResult.data.payments) {
+                                state.hasPaid = meResult.data.payments.some(p => p.status === 'paid');
+                                if (state.hasPaid) {
+                                    state.applicationStatus = 'paid';
+                                }
+                            }
+                        } catch (e) {
+                            console.log('查询支付记录失败:', e.message);
+                        }
+                    }
+                } else {
+                    // 没有申请记录
+                    state.applicationStatus = 'none';
+                    state.hasPaid = false;
+                    state.applicationId = null;
+                }
+            } catch (err) {
+                console.error('查询申请状态失败:', err.message);
+                // 网络错误时不改变现有状态
+            }
+
+            updatePaymentUI();
+        }
+
+        /**
+         * 根据申请状态和支付状态，更新支付区域的 UI
+         */
+        function updatePaymentUI() {
+            const banner = document.getElementById('applicationBanner');
+            const payButton = document.getElementById('payButton');
+            const tierOptions = document.querySelectorAll('.tier-option');
+
+            if (!state.token) {
+                // 未登录：隐藏横幅，禁用支付按钮
+                banner.classList.add('hidden');
+                payButton.disabled = true;
+                payButton.innerHTML = '<span>请先登录</span>';
+                tierOptions.forEach(o => o.style.opacity = '0.5');
+                tierOptions.forEach(o => o.style.pointerEvents = 'none');
+                return;
+            }
+
+            // 已登录，根据申请状态显示
+            const status = state.hasPaid ? 'paid' : (state.applicationStatus || 'none');
+            const config = applicationStatusConfig[status] || applicationStatusConfig['none'];
+
+            // 显示横幅
+            banner.classList.remove('hidden', 'status-none', 'status-pending', 'status-approved', 'status-rejected', 'status-paid');
+            banner.classList.add(config.cssClass);
+            banner.innerHTML = `<span>${config.icon}</span><span>${config.text}</span>`;
+
+            if (config.canPay) {
+                // 可以支付：恢复按钮和档位选择
+                payButton.disabled = false;
+                payButton.innerHTML = '<span>确认支付</span>';
+                payButton.style.background = '';
+                tierOptions.forEach(o => { o.style.opacity = ''; o.style.pointerEvents = ''; });
+            } else if (status === 'paid') {
+                // 已支付
+                payButton.disabled = true;
+                payButton.innerHTML = '✅ 已完成支付';
+                payButton.style.background = 'var(--success)';
+                tierOptions.forEach(o => { o.style.opacity = '0.5'; o.style.pointerEvents = 'none'; });
+            } else {
+                // 不可支付（未申请/待审核/已拒绝）
+                payButton.disabled = true;
+                payButton.innerHTML = '<span>暂不可支付</span>';
+                payButton.style.background = '';
+                tierOptions.forEach(o => { o.style.opacity = '0.5'; o.style.pointerEvents = 'none'; });
+            }
+        }
 
         // ==========================================
         // 我的订单弹窗
@@ -1772,6 +1949,11 @@
             document.getElementById('successOrderId').textContent = orderId;
             document.getElementById('successAmount').textContent = '¥' + parseFloat(amount).toFixed(2);
 
+            // 更新状态为已支付
+            state.hasPaid = true;
+            state.applicationStatus = 'paid';
+            updatePaymentUI();
+
             // 关闭支付宝窗口
             closePaymentWindow();
         }
@@ -1906,6 +2088,28 @@
         // ==========================================
         document.getElementById('payButton').addEventListener('click', async function() {
             const button = this;
+
+            // 前置校验：申请状态和支付状态
+            if (!state.token) {
+                showMessage('请先登录', 'error');
+                loginModal.classList.add('active');
+                return;
+            }
+
+            if (state.hasPaid) {
+                showMessage('您已完成支付，无需重复支付', 'error');
+                return;
+            }
+
+            if (state.applicationStatus !== 'approved') {
+                const statusTexts = {
+                    none: '您尚未提交申请，无法支付',
+                    pending: '您的申请正在审核中，审核通过后才能支付',
+                    rejected: '您的申请未通过审核，无法进行支付',
+                };
+                showMessage(statusTexts[state.applicationStatus] || '申请未通过，无法支付', 'error');
+                return;
+            }
             
             button.disabled = true;
             button.classList.add('loading');
