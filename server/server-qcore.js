@@ -212,6 +212,34 @@ app.get('/api/auth/verify', async (req, res) => {
 });
 
 // ==========================================
+// API: 获取当前用户最新申请
+// GET /api/applications/mine
+// ==========================================
+app.get('/api/applications/mine', verifyToken, async (req, res) => {
+    try {
+        const result = await query(
+            'SELECT id, user_id, status, full_name, paid_at, created_at, updated_at FROM qcore_applications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+            [req.user.userId]
+        );
+
+        if (result.rows.length > 0) {
+            res.json({
+                success: true,
+                data: result.rows[0]
+            });
+        } else {
+            res.json({
+                success: false,
+                error: '暂无申请记录'
+            });
+        }
+    } catch (err) {
+        console.error('获取申请记录失败:', err.message);
+        res.status(500).json({ success: false, error: '获取申请记录失败' });
+    }
+});
+
+// ==========================================
 // API 2: 获取可用档位（带人数限制）
 // GET /api/tiers/available
 // ==========================================
