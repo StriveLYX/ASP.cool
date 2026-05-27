@@ -1691,6 +1691,21 @@
             }
 
             try {
+                // 先查询支付记录（无论是否有申请，都要检查是否已支付）
+                let hasPaidFromPayments = false;
+                try {
+                    const meResp = await fetch(`${CONFIG.apiBase}/api/auth/me`, {
+                        headers: { 'Authorization': 'Bearer ' + state.token }
+                    });
+                    const meResult = await meResp.json();
+                    if (meResult.success && meResult.data && meResult.data.payments) {
+                        hasPaidFromPayments = meResult.data.payments.some(p => p.status === 'paid');
+                    }
+                } catch (e) {
+                    console.log('查询支付记录失败:', e.message);
+                }
+
+                // 再查询申请状态
                 const resp = await fetch(`${CONFIG.apiBase}/api/applications/mine`, {
                     headers: { 'Authorization': 'Bearer ' + state.token }
                 });
@@ -1701,30 +1716,19 @@
                     state.applicationId = app.id || null;
                     state.applicationStatus = app.status || 'none';
 
-                    // 判断是否已支付：申请状态为 paid，或者通过支付记录判断
-                    if (app.status === 'paid') {
+                    // 判断是否已支付：申请状态为 paid，或者支付记录中有 paid
+                    if (app.status === 'paid' || hasPaidFromPayments) {
                         state.hasPaid = true;
-                    } else {
-                        // 额外通过 /api/auth/me 的 payments 判断
-                        try {
-                            const meResp = await fetch(`${CONFIG.apiBase}/api/auth/me`, {
-                                headers: { 'Authorization': 'Bearer ' + state.token }
-                            });
-                            const meResult = await meResp.json();
-                            if (meResult.success && meResult.data && meResult.data.payments) {
-                                state.hasPaid = meResult.data.payments.some(p => p.status === 'paid');
-                                if (state.hasPaid) {
-                                    state.applicationStatus = 'paid';
-                                }
-                            }
-                        } catch (e) {
-                            console.log('查询支付记录失败:', e.message);
+                        if (hasPaidFromPayments && app.status !== 'paid') {
+                            state.applicationStatus = 'paid';
                         }
+                    } else {
+                        state.hasPaid = false;
                     }
                 } else {
-                    // 没有申请记录
-                    state.applicationStatus = 'none';
-                    state.hasPaid = false;
+                    // 没有申请记录，但可能已支付
+                    state.applicationStatus = hasPaidFromPayments ? 'paid' : 'none';
+                    state.hasPaid = hasPaidFromPayments;
                     state.applicationId = null;
                 }
             } catch (err) {
