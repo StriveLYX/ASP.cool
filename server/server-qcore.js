@@ -300,7 +300,7 @@ app.get('/api/payments/page-init', async (req, res) => {
         // 并行查询用户、申请、档位信息
         const [userResult, appResult, tiersResult] = await Promise.all([
             query('SELECT id, email, name FROM users WHERE id = $1', [decoded.userId]),
-            query('SELECT * FROM qcore_applications WHERE id = $1 AND user_id = $2', [app_id, decoded.userId]),
+            query('SELECT id, user_id, status, full_name, paid_at, created_at, updated_at FROM qcore_applications WHERE id = $1 AND user_id = $2', [app_id, decoded.userId]),
             query(`
                 SELECT 
                     t.tier, t.name, t.amount, t.max_slots,
@@ -823,7 +823,7 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
 app.post('/api/alipay/pay', async (req, res) => {
     console.log('📦 收到支付请求:', req.body);
     
-    const { orderId, plan, billing, amount, userId } = req.body;
+    const { orderId, plan, billing, amount, userId, applicationId } = req.body;
     
     if (!orderId || !amount) {
         return res.status(400).json({ error: '缺少必要参数: orderId, amount' });
@@ -852,10 +852,10 @@ app.post('/api/alipay/pay', async (req, res) => {
                 (application_id, user_id, tier, amount, status, batch_number, out_trade_no)
                 VALUES ($1, $2, $3, $4, 'pending', 1, $5)
                 RETURNING id`,
-                [0, userId || 0, plan, amount, orderId]
+                [applicationId || 0, userId || 0, plan, amount, orderId]
             );
             paymentId = dbResult.rows[0]?.id;
-            console.log('✅ 数据库订单已创建, payment_id:', paymentId, ', user_id:', userId, ', out_trade_no:', orderId);
+            console.log('✅ 数据库订单已创建, payment_id:', paymentId, ', user_id:', userId, ', application_id:', applicationId, ', out_trade_no:', orderId);
         } catch (dbErr) {
             console.log('⚠️ 数据库保存失败:', dbErr.message);
         }
