@@ -517,6 +517,21 @@ app.post('/api/alipay/notify', async (req, res) => {
                 const payment = result.rows[0];
                 console.log('✅ 支付记录已更新, payment_id:', payment.id, ', amount:', payment.amount);
                 
+                // 同步更新 qcore_applications 状态为 paid
+                if (payment.application_id && payment.application_id > 0) {
+                    try {
+                        await query(
+                            `UPDATE qcore_applications 
+                             SET status = 'paid', paid_at = NOW(), updated_at = NOW()
+                             WHERE id = $1 AND status = 'approved'`,
+                            [payment.application_id]
+                        );
+                        console.log('✅ 申请状态已同步为 paid, application_id:', payment.application_id);
+                    } catch (appUpdateErr) {
+                        console.error('❌ 更新申请状态失败:', appUpdateErr.message);
+                    }
+                }
+                
                 // 回调 camp2026 更新状态
                 try {
                     await fetch(`${CAMP2026_API}/api/payments/callback`, {
