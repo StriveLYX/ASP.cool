@@ -179,19 +179,24 @@ app.get('/api/auth/verify', async (req, res) => {
         const userResult = await query(
             'SELECT id, email, full_name, created_at FROM users WHERE id = $1',
             [decoded.userId]
+            
         );
-        
+        //
+        console.log('✅ 数据库查询用户成功:', userResult.rows[0]);
+
         if (userResult.rows.length === 0) {
             return res.status(404).json({ success: false, error: '用户不存在' });
         }
         
         const user = userResult.rows[0];
         
+        
         // 获取申请信息
         const appResult = await query(
             'SELECT * FROM qcore_applications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
             [user.id]
         );
+        console.log('✅ 数据库查询申请成功:', appResult.rows[0]);
         
         res.json({
             success: true,
